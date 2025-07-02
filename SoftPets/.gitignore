@@ -1,0 +1,29 @@
+# Directorios de entornos de desarrollo
+.vs/
+.vscode/
+.idea/
+bin/
+obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+
+# Archivos de usuario y temporales
+*.user
+*.suo
+*.cache
+*.log
+*.vsidx
+*.vssidx
+*.psess
+*.ncrunchproject
+
+# Dependencias y paquetes
+**/packages/*
+**/node_modules/
+
+# Archivos de compilación
+*.exe
+*.dll
+*.pdb
+*.lib
+*.zip
