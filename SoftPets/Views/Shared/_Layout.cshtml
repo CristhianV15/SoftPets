@@ -14,9 +14,9 @@
 <body>
     <div class="d-flex">
         <nav class="sidebar flex-shrink-0 p-3" id="sidebarNav" style="width: 240px; position: relative;">
-            <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
             <div class="sidebar-header">
-                <h5>SoftPets</h5>
+                <h5 class="sidebar-logo">SoftPets</h5>
+                <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
             </div>
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="nav-item">
@@ -61,7 +61,8 @@
     <script>
         const sidebar = document.getElementById('sidebarNav');
         const toggle = document.getElementById('sidebarToggle');
-        toggle.addEventListener('click', function () {
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
             sidebar.classList.toggle('show');
         });
         document.addEventListener('click', function (e) {

@@ -10,7 +10,7 @@ body {
 .panel-titulo {
     font-size: 2rem;
     font-weight: bold;
-    color: #2e4d3a;
+    color: #2563eb;
     margin-bottom: 32px;
     text-align: center;
     letter-spacing: 1px;
@@ -30,9 +30,9 @@ body {
     width: 260px;
     min-height: 210px;
     background: #fff;
-    border: 2px solid #7ed6a6;
+    border: 2px solid #e0e7ef;
     border-radius: 16px;
-    box-shadow: 0 2px 14px rgba(46,77,58,0.08);
+    box-shadow: 0 2px 14px rgba(44,62,80,0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -43,8 +43,8 @@ body {
 }
 
     .card-modulo:hover, .card-modulo:focus {
-        box-shadow: 0 8px 32px rgba(46,77,58,0.13);
-        border-color: #2e4d3a;
+        box-shadow: 0 8px 32px rgba(44,62,80,0.13);
+        border-color: #7ed6a6;
         cursor: pointer;
         transform: translateY(-4px) scale(1.03);
     }
@@ -58,7 +58,7 @@ body {
 .card-title {
     font-size: 1.18rem;
     font-weight: 600;
-    color: #2e4d3a;
+    color: #222;
     margin-bottom: 8px;
 }
 
@@ -91,9 +91,9 @@ body {
 .sidebar {
     min-height: 100vh;
     background: #fff;
-    color: #2e4d3a;
-    box-shadow: 2px 0 24px rgba(46,77,58,0.10);
-    border-right: 1.5px solid #7ed6a6;
+    color: #222c36;
+    box-shadow: 2px 0 24px rgba(44,62,80,0.10);
+    border-right: 2.5px solid #7ed6a6;
     transition: margin-left 0.3s;
     position: relative;
 }
@@ -101,12 +101,20 @@ body {
 .sidebar-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     margin-bottom: 28px;
+    padding-left: 8px;
+}
+
+.sidebar-logo {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #2563eb;
+    letter-spacing: 1px;
 }
 
 .sidebar .nav-link {
-    color: #2e4d3a;
+    color: #222c36;
     background: transparent;
     border-radius: 20px;
     margin-bottom: 10px;
@@ -121,7 +129,7 @@ body {
 
     .sidebar .nav-link.active, .sidebar .nav-link:hover {
         background: #7ed6a6;
-        color: #fff;
+        color: #222;
     }
 
     .sidebar .nav-link i {
@@ -130,27 +138,27 @@ body {
     }
 
     .sidebar .nav-link.active i, .sidebar .nav-link:hover i {
-        color: #fff;
+        color: #222;
     }
 
 .sidebar .sidebar-footer {
     margin-top: 10px;
     font-size: 0.97em;
-    color: #2e4d3a;
+    color: #222c36;
     border-radius: 0 0 10px 10px;
     padding: 0.7rem 1rem 1.2rem 1rem;
 }
 
     .sidebar .sidebar-footer hr {
         border: none;
-        border-top: 1px solid #7ed6a6;
+        border-top: 1px solid #e0e7ef;
         margin: 0 0 10px 0;
     }
 
     .sidebar .sidebar-footer .btn-cerrar {
-        border: 2px solid #7ed6a6;
-        color: #2e4d3a !important;
-        background: #fff !important;
+        border: 2px solid #2563eb;
+        color: #fff !important;
+        background: #2563eb !important;
         font-weight: 600;
         margin-top: 10px;
         transition: background 0.2s, color 0.2s;
@@ -158,22 +166,13 @@ body {
 
         .sidebar .sidebar-footer .btn-cerrar:hover, .sidebar .sidebar-footer .btn-cerrar:focus {
             background: #7ed6a6 !important;
-            color: #fff !important;
+            color: #222 !important;
         }
-
-.sidebar h5 {
-    color: #2e4d3a;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 0;
-}
 
 .sidebar-toggle {
     display: block;
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    z-index: 1001;
+    position: relative;
+    margin-left: auto;
     background: #7ed6a6;
     color: #fff;
     border: none;
@@ -221,11 +220,11 @@ body {
 
 .form-group label {
     font-weight: 500;
-    color: #2e4d3a;
+    color: #2563eb;
 }
 
 .btn-unificado {
-    color: #2e4d3a;
+    color: #2563eb;
     border: 2px solid #7ed6a6;
     background: #fff;
     border-radius: 6px;
@@ -252,14 +251,14 @@ body {
 .readonly-field {
     background: #e9ecef !important;
     cursor: not-allowed;
-    color: #2e4d3a !important;
+    color: #2563eb !important;
     border: 1.5px solid #bbb;
     box-shadow: none;
 }
 
 #RolIdDisabled:disabled {
     background: #e9ecef !important;
-    color: #2e4d3a !important;
+    color: #2563eb !important;
     border: 1.5px solid #bbb;
     cursor: not-allowed;
 }
