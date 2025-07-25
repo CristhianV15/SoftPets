@@ -38,6 +38,16 @@ namespace SoftPets.Models
 
         public DateTime? FechaActualizacion { get; set; }
 
+        [Display(Name = "Nombre del usuario")]
+
+        public string NombreUser { get; set; }
+
+        [Display(Name = "Email")]
+        public string Email {get; set; }
+
+        [Display(Name = "Contraseña")]
+        public string Contrasenia { get; set; }
+
         // Relaciones
         [ForeignKey("UsuarioId")]
         public virtual Usuario Usuario { get; set; }

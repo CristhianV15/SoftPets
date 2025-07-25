@@ -1,0 +1,29 @@
+﻿@model SoftPets.Models.Vacuna
+@{
+    ViewBag.Title = "Detalles de Vacuna";
+}
+
+<h2>Detalles de Vacuna</h2>
+
+<div>
+    <h4>Vacuna</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(m => m.Nombre)</dt>
+        <dd>@Model.Nombre</dd>
+        <dt>@Html.DisplayNameFor(m => m.Descripcion)</dt>
+        <dd>@Model.Descripcion</dd>
+        <dt>@Html.DisplayNameFor(m => m.Lote)</dt>
+        <dd>@Model.Lote</dd>
+        <dt>@Html.DisplayNameFor(m => m.Estado)</dt>
+        <dd>@(Model.Estado == '1' ? "Activo" : "Inactivo")</dd>
+        <dt>@Html.DisplayNameFor(m => m.FechaCreacion)</dt>
+        <dd>@Model.FechaCreacion.ToShortDateString()</dd>
+        <dt>@Html.DisplayNameFor(m => m.FechaActualizacion)</dt>
+        <dd>@(Model.FechaActualizacion.HasValue ? Model.FechaActualizacion.Value.ToShortDateString() : "")</dd>
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>

@@ -1,0 +1,51 @@
+﻿
+@model IEnumerable<SoftPets.Models.Duenio>
+@{
+    ViewBag.Title = "Lista de Dueños";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Dueños</h2>
+<p>
+    @Html.ActionLink("Crear Nuevo", "Create")
+</p>
+
+<table class="table">
+    <tr>
+        <th>@Html.DisplayNameFor(m => m.Id)</th>
+        <th>@Html.DisplayNameFor(m => m.UsuarioId)</th>
+        <th>@Html.DisplayNameFor(m => m.Nombres)</th>
+        <th>@Html.DisplayNameFor(m => m.Apellidos)</th>
+        <th>@Html.DisplayNameFor(m => m.DNI)</th>
+        <th>@Html.DisplayNameFor(m => m.Celular)</th>
+        <th>@Html.DisplayNameFor(m => m.Direccion)</th>
+        <th>@Html.DisplayNameFor(m => m.NombreUser)</th>
+        <th>@Html.DisplayNameFor(m => m.Email)</th>
+        <th>@Html.DisplayNameFor(m => m.FechaCreacion)</th>
+        <th>@Html.DisplayNameFor(m => m.FechaActualizacion)</th>
+        <th>Acciones</th>
+
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.UsuarioId</td>
+            <td>@item.Nombres</td>
+            <td>@item.Apellidos</td>
+            <td>@item.DNI</td>
+            <td>@item.Celular</td>
+            <td>@item.Direccion</td>
+            <td>@item.NombreUser</td>
+            <td>@item.Email</td>
+            <td>@item.FechaCreacion.ToShortDateString()</td>
+            <td>@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToShortDateString() : "")</td>
+            <td>
+                @Html.ActionLink("Detalles", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Editar", "Edit", new { id = item.Id }) |
+                @Html.ActionLink(item.Estado == '1' ? "Desactivar" : "Activar", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+</table>

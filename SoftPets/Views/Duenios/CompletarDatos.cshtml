@@ -1,0 +1,119 @@
+﻿@model SoftPets.Models.Duenio
+@{
+    ViewBag.Title = "Completar Datos de Dueño";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .form-horizontal {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 25px 30px 15px 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
+    }
+
+    .form-group label {
+        font-weight: 500;
+    }
+
+    .error-message {
+        color: #F43256;
+        font-size: 1em;
+        margin-bottom: 10px;
+        display: none;
+    }
+</style>
+
+<h2 class="text-center mb-4">@ViewBag.Title</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "duenioForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <div id="errorMsg" class="error-message"></div>
+        @Html.HiddenFor(m => m.UsuarioId)
+
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Nombres, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Nombres, new { @class = "form-control", maxlength = 100, id = "Nombres" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Apellidos, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Apellidos, new { @class = "form-control", maxlength = 100, id = "Apellidos" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.DNI, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.DNI, new { @class = "form-control", maxlength = 8, id = "DNI" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Celular, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Celular, new { @class = "form-control", maxlength = 9, id = "Celular" })
+        </div>
+        <div class="form-group mb-4">
+            @Html.LabelFor(m => m.Direccion, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Direccion, new { @class = "form-control", maxlength = 150, id = "Direccion" })
+        </div>
+        <div class="form-group mt-4 d-grid">
+            <button type="submit" class="btn btn-success">Guardar</button>
+        </div>
+    </div>
+}
+
+<script>
+    document.getElementById('duenioForm').onsubmit = function (e) {
+        var nombres = document.getElementById('Nombres').value.trim();
+        var apellidos = document.getElementById('Apellidos').value.trim();
+        var dni = document.getElementById('DNI').value.trim();
+        var celular = document.getElementById('Celular').value.trim();
+        var direccion = document.getElementById('Direccion').value.trim();
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+
+        // Validaciones
+        if (!nombres) {
+            errorMsg.innerText = "El nombre es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!apellidos) {
+            errorMsg.innerText = "El apellido es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!dni) {
+            errorMsg.innerText = "El DNI es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!/^\d{8}$/.test(dni)) {
+            errorMsg.innerText = "El DNI debe tener exactamente 8 dígitos numéricos.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!celular) {
+            errorMsg.innerText = "El celular es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!/^\d{9}$/.test(celular)) {
+            errorMsg.innerText = "El celular debe tener exactamente 9 dígitos numéricos.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!direccion) {
+            errorMsg.innerText = "La dirección es obligatoria.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+</script>

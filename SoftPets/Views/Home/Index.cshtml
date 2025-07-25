@@ -1,12 +1,100 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Panel principal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int? rolId = Session["RolId"] as int?;
 }
 
-<div class="jumbotron text-center">
-    <h1 class="display-4">SofPets - Menú</h1>
-    <p class="lead">--</p>
-    <hr class="my-4" />
-    <div>
-        <a class="btn btn-primary btn-lg" href="@Url.Action("Index","Roles")">Roles</a>        
-    </div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<div class="panel-titulo">Bienvenido a SoftPets</div>
+<div class="cards-container">
+
+    @* Mascotas *@
+    <a href="@Url.Action("Index", "Mascotas")" class="card-modulo">
+        <span class="card-icon"><i class="bi bi-house-heart"></i></span>
+        <div class="card-title">Mascotas</div>
+        <div class="card-desc">Gestión y registro de mascotas.</div>
+    </a>
+
+    @* Vacunaciones *@
+    <a href="@Url.Action("Index", "Vacunaciones")" class="card-modulo">
+        <span class="card-icon"><i class="bi bi-shield-plus"></i></span>
+        <div class="card-title">Vacunaciones</div>
+        <div class="card-desc">Historial y aplicación de vacunas.</div>
+    </a>
+
+    @* Vacunas (solo admin y veterinario) *@
+    @if (rolId == 1 || rolId == 3)
+    {
+        <a href="@Url.Action("Index", "Vacunas")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-capsule"></i></span>
+            <div class="card-title">Vacunas</div>
+            <div class="card-desc">Catálogo de vacunas disponibles.</div>
+        </a>
+    }
+
+    @* Historiales clínicos (todos) *@
+    <a href="@Url.Action("Index", "HistorialesClinicos")" class="card-modulo">
+        <span class="card-icon"><i class="bi bi-journal-medical"></i></span>
+        <div class="card-title">Historiales Clínicos</div>
+        <div class="card-desc">Consulta de historiales médicos.</div>
+    </a>
+
+    @* QR Público (admin y dueño) *@
+    @if (rolId == 1 || rolId == 2)
+    {
+        <a href="@Url.Action("Index", "QRPublico")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-qr-code"></i></span>
+            <div class="card-title">QR Público</div>
+            <div class="card-desc">Acceso rápido a información pública.</div>
+        </a>
+    }
+
+    @* Roles (solo admin) *@
+    @if (rolId == 1)
+    {
+        <a href="@Url.Action("Index", "Roles")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-person-badge"></i></span>
+            <div class="card-title">Roles</div>
+            <div class="card-desc">Gestión de roles y permisos.</div>
+        </a>
+    }
+
+    @* Usuarios (solo admin) *@
+    @if (rolId == 1)
+    {
+        <a href="@Url.Action("Index", "Usuarios")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-people"></i></span>
+            <div class="card-title">Usuarios</div>
+            <div class="card-desc">Administración de usuarios.</div>
+        </a>
+    }
+
+    @* Tendencias (veterinario y dueño) *@
+    @if (rolId == 2 || rolId == 3)
+    {
+        <a href="@Url.Action("Index", "Tendencias")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-bar-chart-line"></i></span>
+            <div class="card-title">Tendencias</div>
+            <div class="card-desc">Gráficos y estadísticas de salud.</div>
+        </a>
+    }
+
+    @* Mis Datos (no admin) *@
+    @if (rolId == 2)
+    {
+        <a href="@Url.Action("MisDatos", "Duenios")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-person"></i></span>
+            <div class="card-title">Mis Datos</div>
+            <div class="card-desc">Información personal y contacto.</div>
+        </a>
+    }
+    @if (rolId == 3)
+    {
+        <a href="@Url.Action("MisDatos", "Veterinarios")" class="card-modulo">
+            <span class="card-icon"><i class="bi bi-person"></i></span>
+            <div class="card-title">Mis Datos</div>
+            <div class="card-desc">Información personal y contacto.</div>
+        </a>
+    }
 </div>

@@ -1,41 +1,69 @@
 ﻿@model SoftPets.Models.Rol
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Crear Rol";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Crear Rol</h2>
+<style>
+    .form-horizontal {
+        max-width: 500px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 25px 30px 15px 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
+    }
 
+    .form-group label {
+        font-weight: 500;
+    }
 
-@using (Html.BeginForm()) 
+    .error-message {
+        color: #F43256;
+        font-size: 1em;
+        margin-bottom: 10px;
+        display: none;
+    }
+</style>
+
+<h2 class="text-center mb-4">Crear Rol</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "rolForm", autocomplete = "off" }))
 {
     @Html.AntiForgeryToken()
-    
     <div class="form-horizontal">
-        <h4>Rol</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        <div class="form-group">
-            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
-            </div>
+        <div id="errorMsg" class="error-message"></div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label" })
+            @Html.TextBoxFor(model => model.Nombre, new { @class = "form-control", maxlength = 50, placeholder = "Nombre del rol" })
+            @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
         </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Crear" class="btn btn-default" />
-            </div>
+        <div class="form-group mt-3">
+            <input type="submit" value="Crear" class="btn btn-primary" />
+            @Html.ActionLink("Regresar a la lista", "Index", null, new { @class = "btn btn-secondary ms-2" })
         </div>
     </div>
 }
 
-<div>
-    @Html.ActionLink("Regresar a la lista", "Index")
-</div>
+<script>
+    document.getElementById('rolForm').addEventListener('submit', function (e) {
+        var nombre = document.getElementById('Nombre').value.trim();
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
+        if (nombre === '') {
+            errorMsg.innerText = 'El nombre del rol es obligatorio.';
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (nombre.length > 50) {
+            errorMsg.innerText = 'El nombre del rol no puede tener más de 50 caracteres.';
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<SoftPets.Models.Vacuna>
+@{
+    ViewBag.Title = "Lista de Vacunas";
+}
+
+<h2>Vacunas</h2>
+<p>
+    @Html.ActionLink("Crear Nueva", "Create")
+</p>
+
+<table class="table">
+    <tr>
+        <th>@Html.DisplayNameFor(m => m.Nombre)</th>
+        <th>@Html.DisplayNameFor(m => m.Descripcion)</th>
+        <th>@Html.DisplayNameFor(m => m.Lote)</th>
+        <th>@Html.DisplayNameFor(m => m.Estado)</th>
+        <th>@Html.DisplayNameFor(m => m.FechaCreacion)</th>
+        <th>@Html.DisplayNameFor(m => m.FechaActualizacion)</th>
+        <th>Acciones</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Nombre</td>
+            <td>@item.Descripcion</td>
+            <td>@item.Lote</td>
+            <td>@(item.Estado == '1' ? "Activo" : "Inactivo")</td>
+            <td>@item.FechaCreacion.ToShortDateString()</td>
+            <td>@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToShortDateString() : "")</td>
+            <td>
+                @Html.ActionLink("Detalles", "Details", new { id = item.Id }) |
+                @Html.ActionLink("Editar", "Edit", new { id = item.Id }) |
+                @Html.ActionLink(item.Estado == '1' ? "Desactivar" : "Activar", "Delete", new { id = item.Id })
+            </td>
+        </tr>
+    }
+</table>

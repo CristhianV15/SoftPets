@@ -1,0 +1,79 @@
+﻿@model SoftPets.Models.Vacunacion
+@{
+    ViewBag.Title = "Registrar Vacuna";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int mascotaId = ViewBag.MascotaId;
+    string nombreMascota = ViewBag.NombreMascota;
+    var vacunas = ViewBag.Vacunas as List<SelectListItem>;
+}
+
+<style>
+    .form-horizontal {
+        max-width: 500px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 25px 30px 15px 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
+    }
+
+    .form-group label {
+        font-weight: 500;
+    }
+
+    .error-message {
+        color: #F43256;
+        font-size: 1em;
+        margin-bottom: 10px;
+        display: none;
+    }
+</style>
+
+<h2 class="text-center mb-4">Registrar Vacuna a @nombreMascota</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.MascotaId)
+    <div class="form-horizontal">
+        <div id="errorMsg" class="error-message"></div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.VacunaId, "Vacuna", htmlAttributes: new { @class = "control-label" })
+            @Html.DropDownListFor(m => m.VacunaId, vacunas, "Seleccione vacuna", new { @class = "form-control" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Fecha, htmlAttributes: new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.Fecha, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Observaciones, htmlAttributes: new { @class = "control-label" })
+            @Html.TextBoxFor(m => m.Observaciones, new { @class = "form-control", maxlength = 255 })
+        </div>
+        <div class="form-group mt-3">
+            <input type="submit" value="Registrar" class="btn btn-crear" />
+            @Html.ActionLink("Volver", "Index", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
+        </div>
+    </div>
+}
+
+<script>
+    document.querySelector('form').onsubmit = function (e) {
+        var vacunaId = document.getElementById('VacunaId').value;
+        var fecha = document.getElementById('Fecha').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!vacunaId || vacunaId === "0") {
+            errorMsg.innerText = "Debe seleccionar una vacuna.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!fecha) {
+            errorMsg.innerText = "Debe ingresar la fecha de vacunación.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+</script>

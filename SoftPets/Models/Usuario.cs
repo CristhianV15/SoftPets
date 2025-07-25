@@ -29,6 +29,9 @@ namespace SoftPets.Models
         [Display(Name = "Rol")]
         public int RolId { get; set; }
 
+        [Display(Name = "Tipo de usuario")]
+        public String RolNombre { get; set; }
+
         [Required]
         public char Estado { get; set; } // '1' = Activo, '0' = Inactivo
 

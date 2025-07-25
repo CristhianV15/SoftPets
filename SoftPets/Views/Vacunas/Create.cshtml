@@ -1,0 +1,53 @@
+﻿@model SoftPets.Models.Vacuna
+@{
+    ViewBag.Title = "Crear Vacuna";
+}
+
+<h2>Crear Nueva Vacuna</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true)
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(m => m.Nombre)
+                @Html.ValidationMessageFor(m => m.Nombre)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(m => m.Descripcion)
+                @Html.ValidationMessageFor(m => m.Descripcion)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Lote, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(m => m.Lote)
+                @Html.ValidationMessageFor(m => m.Lote)
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Estado, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
+                        new SelectListItem { Text = "Activo", Value = "1" },
+                        new SelectListItem { Text = "Inactivo", Value = "0" }
+                    }, "Seleccione el estado")
+                @Html.ValidationMessageFor(m => m.Estado)
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Crear" class="btn btn-primary" />
+                @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    </div>
+}

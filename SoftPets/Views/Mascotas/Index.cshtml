@@ -1,0 +1,118 @@
+﻿@model IEnumerable<SoftPets.Models.Mascota>
+@{
+    ViewBag.Title = "Mis Mascotas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .table-custom {
+        margin: 30px auto;
+        max-width: 900px;
+        background: #fff;
+        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .table-custom th, .table-custom td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background: #006C67;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+
+        .table-custom tr:nth-child(even) {
+            background: #F8F9FA;
+        }
+
+    .btn-crear {
+        border: 2px solid #CBDF90;
+        color: #222 !important;
+        background: #fff !important;
+        font-weight: 600;
+        letter-spacing: 1px;
+        box-shadow: 0 2px 8px rgba(203,223,144,0.08);
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .btn-crear:hover, .btn-crear:focus {
+            background: #CBDF90 !important;
+            color: #fff !important;
+        }
+
+    .btn-action {
+        margin: 0 2px;
+        min-width: 90px;
+        border-width: 2px;
+        font-weight: 500;
+        color: #222 !important;
+        background: #fff !important;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-outline-success {
+        border-color: #CBDF90 !important;
+    }
+
+    .btn-outline-info {
+        border-color: #29BEFD !important;
+    }
+
+    .btn-outline-warning {
+        border-color: #FFB000 !important;
+    }
+
+    .btn-outline-success:hover, .btn-outline-success:focus {
+        background: #CBDF90 !important;
+        color: #fff !important;
+    }
+
+    .btn-outline-info:hover, .btn-outline-info:focus {
+        background: #29BEFD !important;
+        color: #fff !important;
+    }
+
+    .btn-outline-warning:hover, .btn-outline-warning:focus {
+        background: #FFB000 !important;
+        color: #fff !important;
+    }
+</style>
+
+<h2 class="text-center mb-4">Mis Mascotas</h2>
+<p class="text-center">
+    @Html.ActionLink("Registrar Mascota", "Create", null, new { @class = "btn btn-crear mb-3" })
+</p>
+<table class="table table-custom">
+    <tr>
+        <th>Nombre</th>
+        <th>Especie</th>
+        <th>Raza</th>
+        <th>Sexo</th>
+        <th>Color</th>
+        <th>Fecha Nac.</th>
+        <th>Acciones</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Nombre</td>
+            <td>@item.Especie</td>
+            <td>@item.Raza</td>
+            <td>@item.Sexo</td>
+            <td>@item.Color</td>
+            <td>@(item.FechaNacimiento.HasValue ? item.FechaNacimiento.Value.ToShortDateString() : "")</td>
+            <td>
+                @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-outline-success btn-sm btn-action" })
+                @Html.ActionLink("Detalles", "Details", new { id = item.Id }, new { @class = "btn btn-outline-info btn-sm btn-action" })
+                @Html.ActionLink("Vacunas", "Index", "Vacunaciones", new { mascotaId = item.Id }, new { @class = "btn btn-outline-warning btn-sm btn-action" })
+                @Html.ActionLink("Tendencias", "Index", "Tendencias", new { mascotaId = item.Id }, new { @class = "btn btn-outline-info btn-sm btn-action" })
+            </td>
+        </tr>
+    }
+</table>

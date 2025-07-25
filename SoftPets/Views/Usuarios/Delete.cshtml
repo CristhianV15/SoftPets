@@ -1,0 +1,33 @@
+﻿
+@model SoftPets.Models.Usuario
+@{
+    ViewBag.Title = Model.Estado == '1' ? "Desactivar Usuario" : "Activar Usuario";
+    var accion = Model.Estado == '1' ? "desactivar" : "activar";
+    var textoBoton = Model.Estado == '1' ? "Desactivar" : "Activar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.Title</h2>
+<h3>¿Está seguro que desea @accion este usuario?</h3>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(m => m.Nombre)</dt>
+        <dd>@Model.Nombre</dd>
+        <dt>@Html.DisplayNameFor(m => m.Email)</dt>
+        <dd>@Model.Email</dd>
+        <dt>@Html.DisplayNameFor(m => m.Estado)</dt>
+        <dd>@(Model.Estado == '1' ? "Activo" : "Inactivo")</dd>
+    </dl>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-actions no-color">
+        <input type="submit" value="@textoBoton" class="btn btn-danger" /> |
+        @Html.ActionLink("Cancelar", "Index")
+    </div>
+}
+
+

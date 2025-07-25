@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using SoftPets.Models;
 
@@ -13,15 +10,15 @@ namespace SoftPets.Controllers
     public class RolesController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
-        
-        //Vista Index
+
+        // Index
         public ActionResult Index()
         {
             var lista = new List<Rol>();
             using (var con = new SqlConnection(connectionString))
             using (var cmd = new SqlCommand("RolesSelect", con))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
@@ -31,8 +28,7 @@ namespace SoftPets.Controllers
                         {
                             Id = (int)dr["Id"],
                             Nombre = dr["Nombre"].ToString(),
-                            Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString()[0] : '0' // Asignación corregida
-
+                            Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString()[0] : '0'
                         });
                     }
                 }
@@ -40,13 +36,14 @@ namespace SoftPets.Controllers
             return View(lista);
         }
 
-        //Crear 
+        // Crear
         public ActionResult Create()
         {
             return View();
         }
-        //Crear
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(Rol model)
         {
             if (ModelState.IsValid)
@@ -54,8 +51,9 @@ namespace SoftPets.Controllers
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand("RolesInsert", con))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
+                    cmd.Parameters.AddWithValue("@Estado", '1'); // Por defecto activo
                     con.Open();
                     cmd.ExecuteNonQuery();
                 }
@@ -64,6 +62,7 @@ namespace SoftPets.Controllers
             return View(model);
         }
 
+        // Editar
         public ActionResult Edit(int id)
         {
             Rol rol = null;
@@ -74,17 +73,18 @@ namespace SoftPets.Controllers
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                     if (dr.Read())
-                        rol = new Rol { 
-                        Id = (int)dr["Id"], 
-                        Nombre = dr["Nombre"].ToString(),
-                        Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString()[0] : '0'
+                        rol = new Rol
+                        {
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString()[0] : '0'
                         };
             }
             return View(rol);
         }
 
-        //Editar
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(Rol model)
         {
             if (ModelState.IsValid)
@@ -92,7 +92,7 @@ namespace SoftPets.Controllers
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand("RolesUpdate", con))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Id", model.Id);
                     cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                     cmd.Parameters.AddWithValue("@Estado", model.Estado);
@@ -104,50 +104,29 @@ namespace SoftPets.Controllers
             return View(model);
         }
 
-        //Detalles
-        public ActionResult Details(int id)
+        [HttpPost]
+        public ActionResult CambiarEstado(int id, string nuevoEstado)
         {
-            Rol rol = null;
-            using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand("SELECT Id, Nombre, Estado FROM Roles WHERE Id=@id", con))
+            try
             {
-                cmd.Parameters.AddWithValue("@id", id);
-                con.Open();
-                using (var dr = cmd.ExecuteReader())
+                if (string.IsNullOrEmpty(nuevoEstado) || (nuevoEstado != "1" && nuevoEstado != "0"))
+                    return new HttpStatusCodeResult(400, "Parámetro nuevoEstado inválido.");
+
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("RolesDeactivate", con))
                 {
-                    if (dr.Read())
-                    {
-                        rol = new Rol
-                        {
-                            Id = (int)dr["Id"],
-                            Nombre = dr["Nombre"].ToString(),
-                            Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString()[0] : '0'
-                        };
-                    }
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.Parameters.AddWithValue("@NuevoEstado", nuevoEstado);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
                 }
+                return new HttpStatusCodeResult(200);
             }
-
-            if (rol == null)
+            catch (Exception ex)
             {
-                return HttpNotFound(); // Devuelve un error 404 si no se encuentra el rol
+                return new HttpStatusCodeResult(500, ex.Message);
             }
-
-            return View(rol); // Devuelve la vista con el rol encontrado
-        }
-
-
-        //Eliminar
-        public ActionResult Delete(int id)
-        {
-            using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand("RolesDeactivate", con))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@Id", id);
-                con.Open();
-                cmd.ExecuteNonQuery();
-            }
-            return RedirectToAction("Index");
         }
     }
-}
+    }

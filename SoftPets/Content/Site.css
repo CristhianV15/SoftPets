@@ -1,24 +1,265 @@
-﻿body {
-    padding-top: 50px;
-    padding-bottom: 20px;
+﻿/* ========== GENERAL ========== */
+body {
+    background: #f6f8f3;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* Set padding to keep content from hitting the edges */
-.body-content {
-    padding-left: 15px;
-    padding-right: 15px;
+/* PANEL Y CARDS HOME */
+.panel-titulo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2e4d3a;
+    margin-bottom: 32px;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
-/* Override the default bootstrap behavior where horizontal description lists 
-   will truncate terms that are too long to fit in the left column 
-*/
-.dl-horizontal dt {
-    white-space: normal;
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    max-width: 1100px;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
-textarea {
-    max-width: 280px;
+.card-modulo {
+    width: 260px;
+    min-height: 210px;
+    background: #fff;
+    border: 2px solid #7ed6a6;
+    border-radius: 16px;
+    box-shadow: 0 2px 14px rgba(46,77,58,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 18px 18px 18px;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    text-align: center;
+}
+
+    .card-modulo:hover, .card-modulo:focus {
+        box-shadow: 0 8px 32px rgba(46,77,58,0.13);
+        border-color: #2e4d3a;
+        cursor: pointer;
+        transform: translateY(-4px) scale(1.03);
+    }
+
+.card-icon {
+    font-size: 2.6rem;
+    margin-bottom: 12px;
+    color: #7ed6a6;
+}
+
+.card-title {
+    font-size: 1.18rem;
+    font-weight: 600;
+    color: #2e4d3a;
+    margin-bottom: 8px;
+}
+
+.card-desc {
+    color: #555;
+    font-size: 0.98rem;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 600px) {
+    .cards-container {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .card-modulo {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .panel-titulo {
+        font-size: 1.3rem;
+    }
+}
+
+/* SIDEBAR Y NAVBAR */
+.sidebar {
+    min-height: 100vh;
+    background: #fff;
+    color: #2e4d3a;
+    box-shadow: 2px 0 24px rgba(46,77,58,0.10);
+    border-right: 1.5px solid #7ed6a6;
+    transition: margin-left 0.3s;
+    position: relative;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.sidebar .nav-link {
+    color: #2e4d3a;
+    background: transparent;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+    padding-left: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+}
+
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        background: #7ed6a6;
+        color: #fff;
+    }
+
+    .sidebar .nav-link i {
+        font-size: 1.2rem;
+        color: #7ed6a6;
+    }
+
+    .sidebar .nav-link.active i, .sidebar .nav-link:hover i {
+        color: #fff;
+    }
+
+.sidebar .sidebar-footer {
+    margin-top: 10px;
+    font-size: 0.97em;
+    color: #2e4d3a;
+    border-radius: 0 0 10px 10px;
+    padding: 0.7rem 1rem 1.2rem 1rem;
+}
+
+    .sidebar .sidebar-footer hr {
+        border: none;
+        border-top: 1px solid #7ed6a6;
+        margin: 0 0 10px 0;
+    }
+
+    .sidebar .sidebar-footer .btn-cerrar {
+        border: 2px solid #7ed6a6;
+        color: #2e4d3a !important;
+        background: #fff !important;
+        font-weight: 600;
+        margin-top: 10px;
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .sidebar .sidebar-footer .btn-cerrar:hover, .sidebar .sidebar-footer .btn-cerrar:focus {
+            background: #7ed6a6 !important;
+            color: #fff !important;
+        }
+
+.sidebar h5 {
+    color: #2e4d3a;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 0;
+}
+
+.sidebar-toggle {
+    display: block;
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 1001;
+    background: #7ed6a6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 1.3rem;
+    box-shadow: 0 2px 8px rgba(46,77,58,0.18);
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 220px;
+        z-index: 1000;
+        margin-left: -240px;
+    }
+
+        .sidebar.show {
+            margin-left: 0;
+        }
+
+    .flex-grow-1 {
+        margin-left: 0 !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .sidebar {
+        width: 100vw;
+    }
+}
+
+/* FORMULARIOS Y BOTONES */
+.form-horizontal {
+    max-width: 500px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 25px 30px 15px 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(46,77,58,0.12);
+    border: 2px solid #7ed6a6;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #2e4d3a;
+}
+
+.btn-unificado {
+    color: #2e4d3a;
+    border: 2px solid #7ed6a6;
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    margin-right: 8px;
+}
+
+    .btn-unificado:hover, .btn-unificado:focus {
+        background: #7ed6a6;
+        color: #fff;
+        border-color: #7ed6a6;
+    }
+
+.error-message {
+    color: #F43256;
+    font-size: 1em;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.readonly-field {
+    background: #e9ecef !important;
+    cursor: not-allowed;
+    color: #2e4d3a !important;
+    border: 1.5px solid #bbb;
+    box-shadow: none;
+}
+
+#RolIdDisabled:disabled {
+    background: #e9ecef !important;
+    color: #2e4d3a !important;
+    border: 1.5px solid #bbb;
+    cursor: not-allowed;
 }

@@ -127,14 +127,24 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\DueniosController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Controllers\MascotasController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
+    <Compile Include="Controllers\TendenciasController.cs" />
+    <Compile Include="Controllers\UsuariosController.cs" />
+    <Compile Include="Controllers\VacunacionesController.cs" />
+    <Compile Include="Controllers\VacunasController.cs" />
+    <Compile Include="Controllers\VeterinariosController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\Duenio.cs" />
+    <Compile Include="Models\DuenioMisDatosViewModel.cs" />
     <Compile Include="Models\HistorialClinico.cs" />
+    <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\Mascota.cs" />
     <Compile Include="Models\QRPublico.cs" />
     <Compile Include="Models\Rol.cs" />
@@ -183,12 +193,36 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Roles\Index.cshtml" />
     <Content Include="Views\Roles\Create.cshtml" />
-    <Content Include="Views\Roles\Delete.cshtml" />
     <Content Include="Views\Roles\Edit.cshtml" />
     <Content Include="Views\Roles\Details.cshtml" />
+    <Content Include="Views\Vacunas\Index.cshtml" />
+    <Content Include="Views\Vacunas\Create.cshtml" />
+    <Content Include="Views\Vacunas\Edit.cshtml" />
+    <Content Include="Views\Vacunas\Delete.cshtml" />
+    <Content Include="Views\Vacunas\Details.cshtml" />
+    <Content Include="Views\Usuarios\Index.cshtml" />
+    <Content Include="Views\Usuarios\Details.cshtml" />
+    <Content Include="Views\Usuarios\Create.cshtml" />
+    <Content Include="Views\Usuarios\Edit.cshtml" />
+    <Content Include="Views\Usuarios\Delete.cshtml" />
+    <Content Include="Views\Duenios\Index.cshtml" />
+    <Content Include="Views\Login\Index.cshtml" />
+    <Content Include="Views\Duenios\MisDatos.cshtml" />
+    <Content Include="Views\Veterinarios\MisDatos.cshtml" />
+    <Content Include="Views\Veterinarios\CompletarDatos.cshtml" />
+    <Content Include="Views\Duenios\CompletarDatos.cshtml" />
+    <Content Include="Views\Vacunaciones\Index.cshtml" />
+    <Content Include="Views\Vacunaciones\Create.cshtml" />
+    <Content Include="Views\Tendencias\Index.cshtml" />
+    <Content Include="Views\Tendencias\Create.cshtml" />
+    <Content Include="Views\Mascotas\Index.cshtml" />
+    <Content Include="Views\Mascotas\Create.cshtml" />
+    <Content Include="Views\Mascotas\Details.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\aaa\" />
+    <Folder Include="Views\bbb\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

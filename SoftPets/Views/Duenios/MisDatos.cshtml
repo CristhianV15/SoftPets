@@ -1,0 +1,140 @@
+﻿@model SoftPets.Models.DuenioMisDatosViewModel
+@{
+    ViewBag.Title = "Mis Datos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool esNuevo = ViewBag.EsNuevo ?? false;
+}
+
+<style>
+    .form-horizontal {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 25px 30px 15px 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
+    }
+
+    .form-group label {
+        font-weight: 500;
+    }
+
+    .error-message {
+        color: #F43256;
+        font-size: 1em;
+        margin-bottom: 10px;
+        display: none;
+    }
+</style>
+
+<h2 class="text-center mb-4">@ViewBag.Title</h2>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "misDatosForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <div id="errorMsg" class="error-message"></div>
+        @Html.HiddenFor(m => m.Duenio.UsuarioId)
+        @Html.HiddenFor(m => m.Duenio.Id)
+
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Duenio.Nombres, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Duenio.Nombres, new { @class = "form-control", maxlength = 100, id = "Nombres" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Duenio.Apellidos, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Duenio.Apellidos, new { @class = "form-control", maxlength = 100, id = "Apellidos" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Duenio.DNI, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Duenio.DNI, new { @class = "form-control", maxlength = 8, id = "DNI" })
+        </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Duenio.Celular, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Duenio.Celular, new { @class = "form-control", maxlength = 9, id = "Celular" })
+        </div>
+        <div class="form-group mb-4">
+            @Html.LabelFor(m => m.Duenio.Direccion, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Duenio.Direccion, new { @class = "form-control", maxlength = 150, id = "Direccion" })
+        </div>
+        <div class="form-group mt-4 d-grid">
+            <button type="submit" class="btn btn-success">@((esNuevo) ? "Guardar" : "Actualizar")</button>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('misDatosForm').onsubmit = function (e) {
+            var nombres = document.getElementById('Nombres').value.trim();
+            var apellidos = document.getElementById('Apellidos').value.trim();
+            var dni = document.getElementById('DNI').value.trim();
+            var celular = document.getElementById('Celular').value.trim();
+            var direccion = document.getElementById('Direccion').value.trim();
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+
+            // Validaciones
+            if (!nombres) {
+                errorMsg.innerText = "El nombre es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!apellidos) {
+                errorMsg.innerText = "El apellido es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!dni) {
+                errorMsg.innerText = "El DNI es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!/^\d{8}$/.test(dni)) {
+                errorMsg.innerText = "El DNI debe tener exactamente 8 dígitos numéricos.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!celular) {
+                errorMsg.innerText = "El celular es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!/^\d{9}$/.test(celular)) {
+                errorMsg.innerText = "El celular debe tener exactamente 9 dígitos numéricos.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!direccion) {
+                errorMsg.innerText = "La dirección es obligatoria.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        };
+
+        @if (TempData["DatosActualizados"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: '¡Datos actualizados!',
+                text: 'Tus datos fueron guardados correctamente.',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.href = '@Url.Action("Index", "Home")';
+            });
+            </text>
+        }
+    </script>
+}

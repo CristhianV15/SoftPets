@@ -1,0 +1,32 @@
+﻿
+@model SoftPets.Models.Usuario
+@{
+    ViewBag.Title = "Detalles de Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<h2>Detalles de Usuario</h2>
+<div>
+    <h4>Usuario</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(m => m.Nombre)</dt>
+        <dd>@Model.Nombre</dd>
+        <dt>@Html.DisplayNameFor(m => m.Email)</dt>
+        <dd>@Model.Email</dd>
+        <dt>@Html.DisplayNameFor(m => m.RolNombre)</dt>
+        <dd>@Model.RolNombre</dd>
+        <dt>@Html.DisplayNameFor(m => m.Estado)</dt>
+        <dd>@(Model.Estado == '1' ? "Activo" : "Inactivo")</dd>
+        <dt>@Html.DisplayNameFor(m => m.FechaCreacion)</dt>
+        <dd>@Model.FechaCreacion.ToShortDateString()</dd>
+        <dt>@Html.DisplayNameFor(m => m.FechaActualizacion)</dt>
+        <dd>@(Model.FechaActualizacion.HasValue ? Model.FechaActualizacion.Value.ToShortDateString() : "")</dd>
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Editar", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Volver a la lista", "Index")
+</p>
+
