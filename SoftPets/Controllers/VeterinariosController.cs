@@ -1,4 +1,5 @@
-﻿using SoftPets.Models;
+﻿using SoftPets.Filters;
+using SoftPets.Models;
 using System;
 using System.Configuration;
 using System.Data.SqlClient;
@@ -6,6 +7,8 @@ using System.Web.Mvc;
 
 namespace SoftPets.Controllers
 {
+    [RequiereDatosCompletos]
+
     public class VeterinariosController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
@@ -147,7 +150,7 @@ namespace SoftPets.Controllers
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Colegio", model.Colegio ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@CMP", model.CMP ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                        cmd.Parameters.AddWithValue("@Estado",1);
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
@@ -156,7 +159,7 @@ namespace SoftPets.Controllers
             }
             return View(model);
         }
-
+        
     }
 
 

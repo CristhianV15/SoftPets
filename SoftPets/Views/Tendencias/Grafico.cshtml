@@ -1,0 +1,65 @@
+﻿@model IEnumerable<SoftPets.Models.Tendencia>
+@{
+    ViewBag.Title = "Gráfico de Tendencias";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string nombreMascota = ViewBag.NombreMascota;
+}
+
+<div class="main-content-bg">
+    <div class="tabla-container" style="max-width:700px;">
+        <h2 class="text-center mb-4">Gráfico de Tendencias de @nombreMascota</h2>
+        <canvas id="graficoTendencias" style="max-width:100%;"></canvas>
+        <div class="text-center mt-4">
+            @Html.ActionLink("Volver", "Index", new { mascotaId = ViewBag.MascotaId }, new { @class = "btn btn-unificado" })
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var fechas = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Fecha.HasValue ? x.Fecha.Value.ToString("dd/MM/yyyy") : "")));
+    var pesos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Peso)));
+    var temps = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Temperatura)));
+
+    var ctx = document.getElementById('graficoTendencias').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: fechas,
+            datasets: [
+                {
+                    label: 'Peso (kg)',
+                    data: pesos,
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56,189,248,0.1)',
+                    yAxisID: 'y',
+                    tension: 0.3
+                },
+                {
+                    label: 'Temperatura (°C)',
+                    data: temps,
+                    borderColor: '#fbbf24',
+                    backgroundColor: 'rgba(251,191,36,0.1)',
+                    yAxisID: 'y1',
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'Peso (kg)' }
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    title: { display: true, text: 'Temperatura (°C)' }
+                }
+            }
+        }
+    });
+</script>

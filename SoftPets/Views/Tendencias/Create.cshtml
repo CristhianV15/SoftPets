@@ -6,28 +6,6 @@
     string nombreMascota = ViewBag.NombreMascota;
 }
 
-<style>
-    .form-horizontal {
-        max-width: 500px;
-        margin: 30px auto;
-        background: #fff;
-        padding: 25px 30px 15px 30px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-    }
-
-    .form-group label {
-        font-weight: 500;
-    }
-
-    .error-message {
-        color: #F43256;
-        font-size: 1em;
-        margin-bottom: 10px;
-        display: none;
-    }
-</style>
-
 <h2 class="text-center mb-4">Registrar Tendencia de @nombreMascota</h2>
 
 @using (Html.BeginForm())
@@ -37,23 +15,23 @@
     <div class="form-horizontal">
         <div id="errorMsg" class="error-message"></div>
         <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Fecha, htmlAttributes: new { @class = "control-label" })
-            @Html.TextBoxFor(m => m.Fecha, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            @Html.LabelFor(m => m.Fecha, htmlAttributes: new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Fecha, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "Fecha" })
         </div>
         <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Peso, htmlAttributes: new { @class = "control-label" })
-            @Html.TextBoxFor(m => m.Peso, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
+            @Html.LabelFor(m => m.Peso, htmlAttributes: new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Peso, new { @class = "form-control", type = "number", step = "0.01", min = "0", id = "Peso" })
         </div>
         <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Temperatura, htmlAttributes: new { @class = "control-label" })
-            @Html.TextBoxFor(m => m.Temperatura, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
+            @Html.LabelFor(m => m.Temperatura, htmlAttributes: new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Temperatura, new { @class = "form-control", type = "number", step = "0.01", min = "0", id = "Temperatura" })
         </div>
         <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Otros, htmlAttributes: new { @class = "control-label" })
+            @Html.LabelFor(m => m.Otros, htmlAttributes: new { @class = "form-label" })
             @Html.TextBoxFor(m => m.Otros, new { @class = "form-control", maxlength = 255 })
         </div>
         <div class="form-group mt-3">
-            <input type="submit" value="Registrar" class="btn btn-crear" />
+            <input type="submit" value="Registrar" class="btn btn-unificado" />
             @Html.ActionLink("Volver", "Index", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
         </div>
     </div>

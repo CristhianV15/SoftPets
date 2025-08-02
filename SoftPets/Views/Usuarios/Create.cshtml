@@ -5,99 +5,92 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .form-horizontal {
-        max-width: 600px;
-        margin: 30px auto;
-        background: #fff;
-        padding: 25px 30px 15px 30px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-    }
-
-    .form-group label {
-        font-weight: 500;
-    }
-
-    .error-message {
-        color: #F43256;
-        font-size: 1em;
-        margin-bottom: 10px;
-        display: none;
-    }
-</style>
-
 <h2 class="text-center mb-4">@ViewBag.Title</h2>
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "usuarioForm" }))
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "usuarioForm", @class = "form-horizontal" }))
 {
     @Html.AntiForgeryToken()
-    <div class="form-horizontal">
-        <div id="errorMsg" class="error-message"></div>
+    <div id="errorMsg" class="error-message"></div>
 
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Email, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", maxlength = 100, id = "Email" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Contrasenia, new { @class = "form-label" })
-            @Html.PasswordFor(m => m.Contrasenia, new { @class = "form-control", maxlength = 255, id = "Contrasenia" })
-        </div>
-        <div class="form-group mb-4">
-            @Html.LabelFor(m => m.RolId, new { @class = "form-label" })
-            @Html.DropDownListFor(m => m.RolId, (IEnumerable<SelectListItem>)ViewBag.Roles, "Seleccione un rol", new { @class = "form-control", id = "RolId" })
-        </div>
-        <div class="form-group mt-4">
-            <input type="submit" value="Crear" class="btn btn-primary" />
-            @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
-        </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", maxlength = 100, id = "Email" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Contrasenia, new { @class = "form-label" })
+        @Html.PasswordFor(m => m.Contrasenia, new { @class = "form-control", maxlength = 255, id = "Contrasenia" })
+    </div>
+    <div class="form-group mb-4">
+        @Html.LabelFor(m => m.RolId, new { @class = "form-label" })
+        @Html.DropDownListFor(m => m.RolId, (IEnumerable<SelectListItem>)ViewBag.Roles, "Seleccione un rol", new { @class = "form-control combo-destacado", id = "RolId" })
+    </div>
+    <div class="form-group mt-4 text-center">
+        <input type="submit" value="Crear" class="btn btn-unificado" />
+        @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
     </div>
 }
 
-<script>
-    document.getElementById('usuarioForm').onsubmit = function (e) {
-        var nombre = document.getElementById('Nombre').value.trim();
-        var email = document.getElementById('Email').value.trim();
-        var contrasenia = document.getElementById('Contrasenia').value.trim();
-        var rolId = document.getElementById('RolId').value;
-        var errorMsg = document.getElementById('errorMsg');
-        errorMsg.style.display = 'none';
-        errorMsg.innerText = '';
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('usuarioForm').onsubmit = function (e) {
+            var nombre = document.getElementById('Nombre').value.trim();
+            var email = document.getElementById('Email').value.trim();
+            var contrasenia = document.getElementById('Contrasenia').value.trim();
+            var rolId = document.getElementById('RolId').value;
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
 
-        // Validaciones
-        if (!nombre) {
-            errorMsg.innerText = "El nombre de usuario es obligatorio.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
+            if (!nombre) {
+                errorMsg.innerText = "El nombre de usuario es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!email) {
+                errorMsg.innerText = "El email es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!contrasenia) {
+                errorMsg.innerText = "La contraseña es obligatoria.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (contrasenia.length < 6) {
+                errorMsg.innerText = "La contraseña debe tener al menos 6 caracteres.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!rolId || rolId === "Seleccione un rol") {
+                errorMsg.innerText = "Debe seleccionar un rol.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        };
+
+        // Swal Fire si el usuario ya existe
+        @if (ViewData.ModelState["Nombre"] != null && ViewData.ModelState["Nombre"].Errors.Count > 0)
+        {
+            var error = ViewData.ModelState["Nombre"].Errors[0].ErrorMessage;
+            var nombreUsuario = Model != null ? Model.Nombre : "";
+        <text>
+        Swal.fire({
+            icon: 'error',
+            title: 'Usuario ya existe',
+            text: 'El usuario "@nombreUsuario" ya existe. Elija otro nombre.',
+            showConfirmButton: true
+        });
+        </text>
         }
-        if (!email) {
-            errorMsg.innerText = "El email es obligatorio.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }        
-        if (!contrasenia) {
-            errorMsg.innerText = "La contraseña es obligatoria.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (contrasenia.length < 6) {
-            errorMsg.innerText = "La contraseña debe tener al menos 6 caracteres.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!rolId || rolId === "Seleccione un rol") {
-            errorMsg.innerText = "Debe seleccionar un rol.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-    };
-</script>
+    </script>
+}

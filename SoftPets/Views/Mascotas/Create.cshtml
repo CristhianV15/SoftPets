@@ -4,82 +4,173 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .form-horizontal {
-        max-width: 600px;
-        margin: 30px auto;
-        background: #fff;
-        padding: 25px 30px 15px 30px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-    }
-
-    .form-group label {
-        font-weight: 500;
-    }
-
-    .error-message {
-        color: #F43256;
-        font-size: 1em;
-        margin-bottom: 10px;
-        display: none;
-    }
-</style>
-
 <h2 class="text-center mb-4">@ViewBag.Title</h2>
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("Create", "Mascotas", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal" }))
 {
     @Html.AntiForgeryToken()
-    <div class="form-horizontal">
-        <div id="errorMsg" class="error-message"></div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100 })
+    <div id="errorMsg" class="error-message"></div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.FechaNacimiento, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaNacimiento" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Especie, new { @class = "form-label" })
+        <select name="Especie" id="Especie" class="form-control" onchange="cargarRazasPorEspecie()">
+            <option value="">Seleccione especie</option>
+            <option value="Canino">Perro</option>
+            <option value="Felino">Gato</option>
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        @Html.Label("Raza", new { @class = "form-label" })
+        <select name="Raza" id="Raza" class="form-control" onchange="toggleOtraRaza(this)" disabled>
+            <option value="">Seleccione raza</option>
+        </select>
+        <input type="text" name="OtraRaza" id="OtraRaza" class="form-control mt-2" placeholder="Ingrese la raza" style="display:none;" maxlength="100" />
+    </div>
+    <div class="form-group mb-3">
+        @Html.Label("Sexo", new { @class = "form-label" })
+        <select name="Sexo" id="Sexo" class="form-control">
+            <option value="">Seleccione sexo</option>
+            <option value="Macho">Macho</option>
+            <option value="Hembra">Hembra</option>
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Color, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Color, new { @class = "form-control", maxlength = 30 })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Renian, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Renian, new { @class = "form-control", maxlength = 50 })
+        <span class="text-muted" style="font-size:0.95em;">(Opcional)</span>
+    </div>
+    <div class="form-group mb-3 text-center">
+        @Html.Label("Foto", new { @class = "form-label" })
+        <input type="file" name="FotoFile" id="FotoFile" class="form-control" accept="image/*" onchange="previewFoto(this)" style="max-width:350px; margin:0 auto;" />
+        <div id="previewContainer" style="display:none; margin-top:12px; text-align:center;">
+            <img id="previewImg" src="" alt="Previsualización" style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" />
+            <br />
+            <button type="button" class="btn btn-unificado btn-sm mt-2" onclick="limpiarFoto()">Quitar foto</button>
         </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Especie, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Especie, new { @class = "form-control", maxlength = 30 })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Raza, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Raza, new { @class = "form-control", maxlength = 100 })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.FechaNacimiento, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Sexo, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Sexo, new { @class = "form-control", maxlength = 10 })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Color, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Color, new { @class = "form-control", maxlength = 30 })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Renian, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Renian, new { @class = "form-control", maxlength = 50 })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Foto, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Foto, new { @class = "form-control", maxlength = 75 })
-        </div>
-        <div class="form-group mt-3">
-            <input type="submit" value="Guardar" class="btn btn-crear" />
-            @Html.ActionLink("Volver", "Index", null, new { @class = "btn btn-secondary ms-2" })
-        </div>
+    </div>
+    <div class="form-group mt-3">
+        <input type="submit" value="Guardar" class="btn btn-unificado" />
+        @Html.ActionLink("Volver", "Index", null, new { @class = "btn btn-secondary ms-2" })
     </div>
 }
 
 <script>
+    // Razas por especie
+    const razasPerro = [
+        "Schnauzer", "Bulldog", "Shih Tzu", "Labrador", "Pug", "Pitbull", "Chihuahua", "Pastor Alemán", "Dogo", "Mestizo", "Otro"
+    ];
+    const razasGato = [
+        "Persa", "Siames", "Mestizo", "Otro"
+    ];
+
+    function cargarRazasPorEspecie() {
+        var especie = document.getElementById('Especie').value;
+        var razaSelect = document.getElementById('Raza');
+        razaSelect.innerHTML = '<option value="">Seleccione raza</option>';
+        razaSelect.disabled = !especie;
+        document.getElementById('OtraRaza').style.display = "none";
+        document.getElementById('OtraRaza').value = "";
+
+        if (especie === "Canino") {
+            razasPerro.forEach(function (r) {
+                razaSelect.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        } else if (especie === "Felino") {
+            razasGato.forEach(function (r) {
+                razaSelect.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        }
+    }
+
+    // Mostrar input de "Otra Raza"
+    function toggleOtraRaza(sel) {
+        var otra = document.getElementById('OtraRaza');
+        if (sel.value === "Otro") {
+            otra.style.display = "block";
+        } else {
+            otra.style.display = "none";
+            otra.value = "";
+        }
+    }
+
+    // Previsualización de foto
+    function previewFoto(input) {
+        var previewContainer = document.getElementById('previewContainer');
+        var previewImg = document.getElementById('previewImg');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = "block";
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            previewContainer.style.display = "none";
+            previewImg.src = "";
+        }
+    }
+    function limpiarFoto() {
+        var fileInput = document.getElementById('FotoFile');
+        var previewContainer = document.getElementById('previewContainer');
+        var previewImg = document.getElementById('previewImg');
+        fileInput.value = "";
+        previewContainer.style.display = "none";
+        previewImg.src = "";
+    }
+
+    // Validación JS
     document.querySelector('form').onsubmit = function (e) {
         var nombre = document.getElementById('Nombre').value.trim();
+        var especie = document.getElementById('Especie').value;
+        var raza = document.getElementById('Raza').value;
+        var sexo = document.getElementById('Sexo').value;
+        var fechaNac = document.getElementById('FechaNacimiento').value;
         var errorMsg = document.getElementById('errorMsg');
         errorMsg.style.display = 'none';
         errorMsg.innerText = '';
         if (!nombre) {
             errorMsg.innerText = "El nombre de la mascota es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!fechaNac) {
+            errorMsg.innerText = "Debe seleccionar la fecha de nacimiento.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!especie) {
+            errorMsg.innerText = "Debe seleccionar la especie.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!raza && document.getElementById('OtraRaza').style.display === "none") {
+            errorMsg.innerText = "Debe seleccionar la raza.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (raza === "Otro" && !document.getElementById('OtraRaza').value.trim()) {
+            errorMsg.innerText = "Debe ingresar la raza.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!sexo) {
+            errorMsg.innerText = "Debe seleccionar el sexo.";
             errorMsg.style.display = 'block';
             e.preventDefault();
             return false;

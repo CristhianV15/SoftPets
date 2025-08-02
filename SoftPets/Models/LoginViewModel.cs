@@ -11,6 +11,8 @@ namespace SoftPets.Models
         [Required]
         public string Nombre { get; set; }
 
+
+        [Display(Name = "Contraseña")]
         [Required]
         [DataType(DataType.Password)]
         public string Contrasenia { get; set; }

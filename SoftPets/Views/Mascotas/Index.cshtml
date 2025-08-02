@@ -1,118 +1,212 @@
 ﻿@model IEnumerable<SoftPets.Models.Mascota>
 @{
-    ViewBag.Title = "Mis Mascotas";
+    int? rolId = Session["RolId"] as int?;
+    ViewBag.Title = (rolId == 1 || rolId == 3) ? "Mascotas" : "Mis Mascotas";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var razas = ViewBag.Razas as List<string>;
+    var sexos = ViewBag.Sexos as List<string>;
+    var duenios = ViewBag.Duenios as List<SoftPets.Models.Duenio>;
 }
 
-<style>
-    .table-custom {
-        margin: 30px auto;
-        max-width: 900px;
-        background: #fff;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-        border-radius: 12px;
-        overflow: hidden;
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">@ViewBag.Title</h2>
+        <p class="text-center">
+            @Html.ActionLink("Registrar Mascota", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+        </p>
+        <div class="mb-3 text-center">
+            @if (rolId == 1 || rolId == 3)
+            {
+                <input type="text" id="filtroDuenio" class="form-control" style="max-width:170px;display:inline-block;" placeholder="Buscar por dueño..." />
+            }
+            <input type="text" id="filtroMascota" class="form-control" style="max-width:240px;display:inline-block;margin-left:8px;" placeholder="Buscar por nombre de mascota..." />
+            @if (rolId == 1 || rolId == 3)
+            {
+                <select id="filtroSexo" class="form-control" style="max-width:130px;display:inline-block;margin-left:8px;">
+                    <option value="">Sexo</option>
+                    @foreach (var s in sexos)
+                    {
+                        <option value="@s">@s</option>
+                    }
+                </select>
+                <select id="filtroRaza" class="form-control" style="max-width:170px;display:inline-block;margin-left:8px;">
+                    <option value="">Raza</option>
+                    @foreach (var r in razas)
+                    {
+                        <option value="@r">@r</option>
+                    }
+                </select>
+            }
+        </div>
+        <table class="table table-custom" id="tablaMascotas">
+            <tr>
+                @if (rolId == 1 || rolId == 3)
+                {
+                    <th>Dueño</th>
+                }
+                <th>Mascota</th>
+                <th>Raza</th>
+                <th>Sexo</th>
+                <th>Fecha Nac.</th>
+                <th>Foto</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @if (rolId == 1 || rolId == 3)
+                    {
+                        <td>@($"{item.DueñoNombre} {item.DueñoApellido}")</td>
+                    }
+                    <td>@item.Nombre</td>
+                    <td>@item.Raza</td>
+                    <td>
+                        @if (item.Sexo == "Macho")
+                        {
+                            @:<i class="bi bi-gender-male" style="color:#2563eb;font-size:1.2em;" title="Macho"></i> Macho
+                        }
+                        else if (item.Sexo == "Hembra")
+                        {
+                            @:<i class="bi bi-gender-female" style="color:#f472b6;font-size:1.2em;" title="Hembra"></i> Hembra
+                        }
+                        else
+                        {
+                            @item.Sexo
+                        }
+                    </td>
+                    <td>@(item.FechaNacimiento.HasValue ? item.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Foto))
+                        {
+                            <button type="button"
+                                    class="btn btn-unificado btn-sm"
+                                    title="Ver foto"
+                                    onclick="mostrarFoto('@item.Foto', '@item.Nombre')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <a href="javascript:void(0);" class="btn btn-unificado btn-sm" title="Detalles"
+                               onclick="mostrarDetallesMascota('@item.Nombre', '@item.Especie', '@item.Raza', '@item.Sexo', '@item.Color', '@(item.FechaNacimiento.HasValue ? item.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "")', '@item.Renian', '@item.Foto')">
+                                <i class="bi bi-info-circle"></i>
+                            </a>
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </div>
+                        <div class="acciones-btn-group">
+                            <a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunas">
+                                <i class="bi bi-capsule"></i>
+                            </a>
+                            <a href="@Url.Action("Index", "Tendencias", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Tendencias">
+                                <i class="bi bi-bar-chart-line"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+<!-- Modal para mostrar la foto -->
+<div class="modal fade" id="fotoModal" tabindex="-1" aria-labelledby="fotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fotoModalLabel">Foto de <span id="nombreMascotaFoto"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="fotoMascota" src="" alt="Foto Mascota" style="max-width:100%;max-height:350px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles de mascota -->
+<div class="modal fade" id="detallesMascotaModal" tabindex="-1" aria-labelledby="detallesMascotaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detallesMascotaModalLabel">Detalles de la Mascota</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="detallesMascotaBody">
+                <!-- Aquí se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    var rolId = @((int?)rolId ?? 0);
+
+    function mostrarFoto(ruta, nombre) {
+        var modal = new bootstrap.Modal(document.getElementById('fotoModal'));
+        document.getElementById('fotoMascota').src = ruta;
+        document.getElementById('nombreMascotaFoto').innerText = nombre;
+        modal.show();
     }
 
-        .table-custom th, .table-custom td {
-            text-align: center;
-            vertical-align: middle;
+    function mostrarDetallesMascota(nombre, especie, raza, sexo, color, fechaNac, renian, foto) {
+        var html = '';
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Nombre:</div><div class="col-7 modal-details-value">${nombre}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Especie:</div><div class="col-7 modal-details-value">${especie}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Raza:</div><div class="col-7 modal-details-value">${raza}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Sexo:</div><div class="col-7 modal-details-value">${sexo}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Color:</div><div class="col-7 modal-details-value">${color}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Nac.:</div><div class="col-7 modal-details-value">${fechaNac}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Renian:</div><div class="col-7 modal-details-value">${renian || '-'}</div></div>`;
+        if (foto) {
+            html += `<div class="row mb-2"><div class="col-12 text-center"><img src="${foto}" alt="Foto Mascota" style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" /></div></div>`;
         }
-
-        .table-custom th {
-            background: #006C67;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1em;
-            letter-spacing: 1px;
-        }
-
-        .table-custom tr:nth-child(even) {
-            background: #F8F9FA;
-        }
-
-    .btn-crear {
-        border: 2px solid #CBDF90;
-        color: #222 !important;
-        background: #fff !important;
-        font-weight: 600;
-        letter-spacing: 1px;
-        box-shadow: 0 2px 8px rgba(203,223,144,0.08);
-        transition: background 0.2s, color 0.2s;
+        document.getElementById('detallesMascotaBody').innerHTML = html;
+        var modal = new bootstrap.Modal(document.getElementById('detallesMascotaModal'));
+        modal.show();
     }
 
-        .btn-crear:hover, .btn-crear:focus {
-            background: #CBDF90 !important;
-            color: #fff !important;
-        }
+    // Buscador por nombre, sexo, raza y dueño
+    document.getElementById('filtroMascota').addEventListener('keyup', filtrarMascotas);
+    var filtroSexo = document.getElementById('filtroSexo');
+    var filtroRaza = document.getElementById('filtroRaza');
+    var filtroDuenio = document.getElementById('filtroDuenio');
+    if (filtroSexo) filtroSexo.addEventListener('change', filtrarMascotas);
+    if (filtroRaza) filtroRaza.addEventListener('change', filtrarMascotas);
+    if (filtroDuenio) filtroDuenio.addEventListener('keyup', filtrarMascotas);
 
-    .btn-action {
-        margin: 0 2px;
-        min-width: 90px;
-        border-width: 2px;
-        font-weight: 500;
-        color: #222 !important;
-        background: #fff !important;
-        transition: background 0.2s, color 0.2s;
-    }
+    function filtrarMascotas() {
+        var filtro = document.getElementById('filtroMascota').value.toLowerCase();
+        var sexo = filtroSexo ? filtroSexo.value.toLowerCase() : '';
+        var raza = filtroRaza ? filtroRaza.value.toLowerCase() : '';
+        var duenio = filtroDuenio ? filtroDuenio.value.toLowerCase() : '';
+        var filas = document.querySelectorAll('#tablaMascotas tbody tr');
+        filas.forEach(function (fila) {
+            var tds = fila.querySelectorAll('td');
+            if (tds.length < (rolId == 1 || rolId == 3 ? 7 : 6)) return;
+            var idxNombre = (rolId == 1 || rolId == 3) ? 1 : 0;
+            var idxRaza = (rolId == 1 || rolId == 3) ? 2 : 1;
+            var idxSexo = (rolId == 1 || rolId == 3) ? 3 : 2;
+            var idxDuenio = (rolId == 1 || rolId == 3) ? 0 : -1;
 
-    .btn-outline-success {
-        border-color: #CBDF90 !important;
-    }
+            var nombre = tds[idxNombre].innerText.toLowerCase();
+            var razaTd = tds[idxRaza].innerText.toLowerCase();
+            var sexoTd = tds[idxSexo].innerText.toLowerCase();
+            var duenioTd = idxDuenio >= 0 ? tds[idxDuenio].innerText.toLowerCase().trim() : '';
 
-    .btn-outline-info {
-        border-color: #29BEFD !important;
+            var mostrar = true;
+            if (filtro && nombre.indexOf(filtro) === -1) mostrar = false;
+            if (sexo && sexoTd !== sexo) mostrar = false;
+            if (raza && razaTd !== raza) mostrar = false;
+            if ((rolId == 1 || rolId == 3) && duenio && duenioTd.indexOf(duenio) === -1) mostrar = false;
+            fila.style.display = mostrar ? '' : 'none';
+        });
     }
-
-    .btn-outline-warning {
-        border-color: #FFB000 !important;
-    }
-
-    .btn-outline-success:hover, .btn-outline-success:focus {
-        background: #CBDF90 !important;
-        color: #fff !important;
-    }
-
-    .btn-outline-info:hover, .btn-outline-info:focus {
-        background: #29BEFD !important;
-        color: #fff !important;
-    }
-
-    .btn-outline-warning:hover, .btn-outline-warning:focus {
-        background: #FFB000 !important;
-        color: #fff !important;
-    }
-</style>
-
-<h2 class="text-center mb-4">Mis Mascotas</h2>
-<p class="text-center">
-    @Html.ActionLink("Registrar Mascota", "Create", null, new { @class = "btn btn-crear mb-3" })
-</p>
-<table class="table table-custom">
-    <tr>
-        <th>Nombre</th>
-        <th>Especie</th>
-        <th>Raza</th>
-        <th>Sexo</th>
-        <th>Color</th>
-        <th>Fecha Nac.</th>
-        <th>Acciones</th>
-    </tr>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Nombre</td>
-            <td>@item.Especie</td>
-            <td>@item.Raza</td>
-            <td>@item.Sexo</td>
-            <td>@item.Color</td>
-            <td>@(item.FechaNacimiento.HasValue ? item.FechaNacimiento.Value.ToShortDateString() : "")</td>
-            <td>
-                @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-outline-success btn-sm btn-action" })
-                @Html.ActionLink("Detalles", "Details", new { id = item.Id }, new { @class = "btn btn-outline-info btn-sm btn-action" })
-                @Html.ActionLink("Vacunas", "Index", "Vacunaciones", new { mascotaId = item.Id }, new { @class = "btn btn-outline-warning btn-sm btn-action" })
-                @Html.ActionLink("Tendencias", "Index", "Tendencias", new { mascotaId = item.Id }, new { @class = "btn btn-outline-info btn-sm btn-action" })
-            </td>
-        </tr>
-    }
-</table>
+</script>

@@ -60,6 +60,8 @@ namespace SoftPets.Models
         public virtual ICollection<HistorialClinico> HistorialesClinicos { get; set; }
         public virtual ICollection<Tendencia> Tendencias { get; set; }
         public virtual ICollection<QRPublico> QRPublicos { get; set; }
+        public string DueñoNombre { get; set; }
+        public string DueñoApellido { get; set; }
     }   
 
 

@@ -1,38 +1,148 @@
 ﻿@model IEnumerable<SoftPets.Models.Vacuna>
 @{
     ViewBag.Title = "Lista de Vacunas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Vacunas</h2>
-<p>
-    @Html.ActionLink("Crear Nueva", "Create")
-</p>
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Vacunas</h2>
+        <p class="text-center">
+            @Html.ActionLink("Crear Nueva", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+        </p>
+        <table class="table table-custom" id="tablaVacunas">
+            <tr>
+                <th>@Html.DisplayNameFor(m => m.Nombre)</th>
+                <th>@Html.DisplayNameFor(m => m.Descripcion)</th>
+                <th>@Html.DisplayNameFor(m => m.Lote)</th>
+                <th>@Html.DisplayNameFor(m => m.Estado)</th>
+                <th>@Html.DisplayNameFor(m => m.FechaActualizacion)</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                var accion = item.Estado == '1' ? "desactivar" : "activar";
+                var color = item.Estado == '1' ? "danger" : "success";
+                <tr>
+                    <td>@item.Nombre</td>
+                    <td>@item.Descripcion</td>
+                    <td>@item.Lote</td>
+                    <td>
+                        <span class="badge @(item.Estado == '1' ? "bg-success" : "bg-secondary")">
+                            @(item.Estado == '1' ? "Activo" : "Inactivo")
+                        </span>
+                    </td>
+                    <td>@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToString("dd/MM/yyyy") : "")</td>
+                    <td class="acciones-btn-group">
+                        <button type="button"
+                                class="btn btn-unificado btn-sm"
+                                title="Detalles"
+                                onclick="mostrarDetallesVacuna('@item.Nombre', '@item.Descripcion', '@item.Lote', '@(item.Estado == '1' ? "Activo" : "Inactivo")', '@item.FechaCreacion.ToString("dd/MM/yyyy")', '@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToString("dd/MM/yyyy") : "")')">
+                            <i class="bi bi-info-circle"></i>
+                        </button>
+                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form action="@Url.Action("Delete", "Vacunas")" method="post" style="display:inline;" onsubmit="return abrirModalVacunaForm(this, '@item.Nombre', '@accion', '@color');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit"
+                                    class="btn btn-outline-@color btn-sm btn-activar">
+                                @(item.Estado == '1' ? "Desactivar" : "Activar")
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
 
-<table class="table">
-    <tr>
-        <th>@Html.DisplayNameFor(m => m.Nombre)</th>
-        <th>@Html.DisplayNameFor(m => m.Descripcion)</th>
-        <th>@Html.DisplayNameFor(m => m.Lote)</th>
-        <th>@Html.DisplayNameFor(m => m.Estado)</th>
-        <th>@Html.DisplayNameFor(m => m.FechaCreacion)</th>
-        <th>@Html.DisplayNameFor(m => m.FechaActualizacion)</th>
-        <th>Acciones</th>
-    </tr>
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalConfirmarVacuna" tabindex="-1" aria-labelledby="modalConfirmarVacunaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#fff;">
+                <h5 class="modal-title" id="modalConfirmarVacunaLabel" style="color:#222;">Confirmar acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <span id="modalMensajeVacuna"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn" id="btnConfirmarAccionVacuna">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Nombre</td>
-            <td>@item.Descripcion</td>
-            <td>@item.Lote</td>
-            <td>@(item.Estado == '1' ? "Activo" : "Inactivo")</td>
-            <td>@item.FechaCreacion.ToShortDateString()</td>
-            <td>@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToShortDateString() : "")</td>
-            <td>
-                @Html.ActionLink("Detalles", "Details", new { id = item.Id }) |
-                @Html.ActionLink("Editar", "Edit", new { id = item.Id }) |
-                @Html.ActionLink(item.Estado == '1' ? "Desactivar" : "Activar", "Delete", new { id = item.Id })
-            </td>
-        </tr>
+<!-- Modal de detalles de vacuna -->
+<div class="modal fade" id="detallesVacunaModal" tabindex="-1" aria-labelledby="detallesVacunaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detallesVacunaModalLabel">Detalles de la Vacuna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="detallesVacunaBody">
+                <!-- Aquí se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    var formVacunaPendiente = null;
+    var nombreVacunaPendiente = '';
+    var accionVacunaPendiente = '';
+    var colorVacunaPendiente = '';
+
+    function abrirModalVacunaForm(form, nombre, accion, color) {
+        formVacunaPendiente = form;
+        nombreVacunaPendiente = nombre;
+        accionVacunaPendiente = accion;
+        colorVacunaPendiente = color;
+        document.getElementById('modalMensajeVacuna').innerText = `¿Está seguro que desea ${accion.toLowerCase()} la vacuna "${nombre}"?`;
+        var btn = document.getElementById('btnConfirmarAccionVacuna');
+        btn.className = color === "danger" ? "btn btn-outline-danger" : "btn btn-outline-success";
+        var modal = new bootstrap.Modal(document.getElementById('modalConfirmarVacuna'));
+        modal.show();
+        return false; // Previene submit inmediato
     }
-</table>
+
+    document.getElementById('btnConfirmarAccionVacuna').onclick = function () {
+        if (formVacunaPendiente) {
+            formVacunaPendiente.submit();
+        }
+    };
+
+    function mostrarDetallesVacuna(nombre, descripcion, lote, estado, fechaCreacion, fechaActualizacion) {
+        var html = '';
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Nombre:</div><div class="col-7 modal-details-value">${nombre}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Descripción:</div><div class="col-7 modal-details-value">${descripcion}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Lote:</div><div class="col-7 modal-details-value">${lote}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Estado:</div><div class="col-7 modal-details-value">${estado}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Creación:</div><div class="col-7 modal-details-value">${fechaCreacion}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Actualización:</div><div class="col-7 modal-details-value">${fechaActualizacion}</div></div>`;
+        document.getElementById('detallesVacunaBody').innerHTML = html;
+        var modal = new bootstrap.Modal(document.getElementById('detallesVacunaModal'));
+        modal.show();
+    }
+
+    // Swal Fire tras cambio de estado
+    @if (TempData["SwalVacuna"] != null && TempData["SwalAccion"] != null)
+    {
+        <text>
+        Swal.fire({
+            icon: 'success',
+            title: '¡Vacuna actualizada!',
+            text: 'La vacuna "@Html.Raw(TempData["SwalVacuna"].ToString())" se @Html.Raw(TempData["SwalAccion"].ToString()) correctamente.',
+            showConfirmButton: false,
+            timer: 1800
+        });
+        </text>
+    }
+</script>

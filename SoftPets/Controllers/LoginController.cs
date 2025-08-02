@@ -40,6 +40,14 @@ namespace SoftPets.Controllers
                         int rolId = (int)reader["RolId"];
                         int? duenioId = reader["DuenioId"] != DBNull.Value ? (int?)reader["DuenioId"] : null;
                         int? veterinarioId = reader["VeterinarioId"] != DBNull.Value ? (int?)reader["VeterinarioId"] : null;
+                        char estado = Convert.ToChar(reader["Estado"]);
+
+                        // Validar si la cuenta está inhabilitada
+                        if (estado == '0')
+                        {
+                            ModelState.AddModelError("", "La cuenta está inhabilitada. Contacte al administrador.");
+                            return View(model);
+                        }
 
                         // Guardar en sesión
                         Session["UsuarioId"] = usuarioId;
@@ -57,7 +65,7 @@ namespace SoftPets.Controllers
                                 return RedirectToAction("CompletarDatos", "Duenios");
                             else
                             {
-                                Session["DuenioId"] = duenioId; // <-- ¡IMPORTANTE!
+                                Session["DuenioId"] = duenioId;
                                 return RedirectToAction("Index", "Home");
                             }
                         }

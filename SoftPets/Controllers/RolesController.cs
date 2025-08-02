@@ -1,12 +1,15 @@
-﻿using System;
+﻿using SoftPets.Filters;
+using SoftPets.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Web.Mvc;
-using SoftPets.Models;
 
 namespace SoftPets.Controllers
 {
+    [RequiereDatosCompletos]
+
     public class RolesController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;

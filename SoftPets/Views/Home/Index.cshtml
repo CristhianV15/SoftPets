@@ -9,92 +9,99 @@
 <div class="panel-titulo">Bienvenido a SoftPets</div>
 <div class="cards-container">
 
-    @* Mascotas *@
-    <a href="@Url.Action("Index", "Mascotas")" class="card-modulo">
-        <span class="card-icon"><i class="bi bi-house-heart"></i></span>
-        <div class="card-title">Mascotas</div>
-        <div class="card-desc">Gestión y registro de mascotas.</div>
-    </a>
+    <!-- Mascotas (todos) -->
+    <div>
+        <a href="@Url.Action("Index", "Mascotas")" class="card-modulo card-mascotas">
+            <i class="bi bi-house-heart card-icon"></i>
+        </a>
+        <div class="card-label">Mascotas</div>
+    </div>
 
-    @* Vacunaciones *@
-    <a href="@Url.Action("Index", "Vacunaciones")" class="card-modulo">
-        <span class="card-icon"><i class="bi bi-shield-plus"></i></span>
-        <div class="card-title">Vacunaciones</div>
-        <div class="card-desc">Historial y aplicación de vacunas.</div>
-    </a>
+    <!-- Vacunaciones (todos) -->
+    <div>
+        <a href="@Url.Action("Index", "Vacunaciones")" class="card-modulo card-vacunaciones">
+            <i class="bi bi-shield-plus card-icon"></i>
+        </a>
+        <div class="card-label">Vacunaciones</div>
+    </div>
 
-    @* Vacunas (solo admin y veterinario) *@
+    <!-- Historiales Clínicos (todos) -->
+    <div>
+        <a href="@Url.Action("Index", "HistorialesClinicos")" class="card-modulo card-historiales">
+            <i class="bi bi-journal-medical card-icon"></i>
+        </a>
+        <div class="card-label">Historiales Clínicos</div>
+    </div>
+
+    <!-- Tendencias (todos) -->
+    <div>
+        <a href="@Url.Action("Index", "Tendencias")" class="card-modulo card-tendencias">
+            <i class="bi bi-bar-chart-line card-icon"></i>
+        </a>
+        <div class="card-label">Tendencias</div>
+    </div>
+
+    <!-- Roles (solo admin) -->
+    @if (rolId == 1)
+    {
+        <div>
+            <a href="@Url.Action("Index", "Roles")" class="card-modulo card-roles">
+                <i class="bi bi-person-badge card-icon"></i>
+            </a>
+            <div class="card-label">Roles</div>
+        </div>
+        <div>
+            <a href="@Url.Action("Index", "Usuarios")" class="card-modulo card-usuarios">
+                <i class="bi bi-people card-icon"></i>
+            </a>
+            <div class="card-label">Usuarios</div>
+        </div>
+        <div>
+            <a href="@Url.Action("Index", "Veterinarios")" class="card-modulo card-veterinarios">
+                <i class="bi bi-heart-pulse card-icon"></i>
+            </a>
+            <div class="card-label">Veterinarios</div>
+        </div>
+    }
+
+    <!-- Dueños (admin y veterinario) -->
     @if (rolId == 1 || rolId == 3)
     {
-        <a href="@Url.Action("Index", "Vacunas")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-capsule"></i></span>
-            <div class="card-title">Vacunas</div>
-            <div class="card-desc">Catálogo de vacunas disponibles.</div>
-        </a>
+        <div>
+            <a href="@Url.Action("Index", "Duenios")" class="card-modulo card-duenios">
+                <i class="bi bi-person-lines-fill card-icon"></i>
+            </a>
+            <div class="card-label">Dueños</div>
+        </div>
     }
 
-    @* Historiales clínicos (todos) *@
-    <a href="@Url.Action("Index", "HistorialesClinicos")" class="card-modulo">
-        <span class="card-icon"><i class="bi bi-journal-medical"></i></span>
-        <div class="card-title">Historiales Clínicos</div>
-        <div class="card-desc">Consulta de historiales médicos.</div>
-    </a>
-
-    @* QR Público (admin y dueño) *@
-    @if (rolId == 1 || rolId == 2)
-    {
-        <a href="@Url.Action("Index", "QRPublico")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-qr-code"></i></span>
-            <div class="card-title">QR Público</div>
-            <div class="card-desc">Acceso rápido a información pública.</div>
-        </a>
-    }
-
-    @* Roles (solo admin) *@
-    @if (rolId == 1)
-    {
-        <a href="@Url.Action("Index", "Roles")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-person-badge"></i></span>
-            <div class="card-title">Roles</div>
-            <div class="card-desc">Gestión de roles y permisos.</div>
-        </a>
-    }
-
-    @* Usuarios (solo admin) *@
-    @if (rolId == 1)
-    {
-        <a href="@Url.Action("Index", "Usuarios")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-people"></i></span>
-            <div class="card-title">Usuarios</div>
-            <div class="card-desc">Administración de usuarios.</div>
-        </a>
-    }
-
-    @* Tendencias (veterinario y dueño) *@
+    <!-- Mis Datos (solo dueño y veterinario) -->
     @if (rolId == 2 || rolId == 3)
     {
-        <a href="@Url.Action("Index", "Tendencias")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-bar-chart-line"></i></span>
-            <div class="card-title">Tendencias</div>
-            <div class="card-desc">Gráficos y estadísticas de salud.</div>
-        </a>
+        <div>
+            <a href="@Url.Action("MisDatos", rolId == 2 ? "Duenios" : "Veterinarios")" class="card-modulo card-misdatos">
+                <i class="bi bi-person card-icon"></i>
+            </a>
+            <div class="card-label">Mis Datos</div>
+        </div>
     }
 
-    @* Mis Datos (no admin) *@
-    @if (rolId == 2)
-    {
-        <a href="@Url.Action("MisDatos", "Duenios")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-person"></i></span>
-            <div class="card-title">Mis Datos</div>
-            <div class="card-desc">Información personal y contacto.</div>
+    <!-- QR (todos) -->
+    <div>
+        <a href="@Url.Action("Index", "QRPublico")" class="card-modulo card-qr">
+            <i class="bi bi-qr-code card-icon"></i>
         </a>
-    }
-    @if (rolId == 3)
+        <div class="card-label">QR</div>
+    </div>
+
+    <!-- Vacunas (admin y veterinario) -->
+    @if (rolId == 1 || rolId == 3)
     {
-        <a href="@Url.Action("MisDatos", "Veterinarios")" class="card-modulo">
-            <span class="card-icon"><i class="bi bi-person"></i></span>
-            <div class="card-title">Mis Datos</div>
-            <div class="card-desc">Información personal y contacto.</div>
-        </a>
+        <div>
+            <a href="@Url.Action("Index", "Vacunas")" class="card-modulo card-vacunas">
+                <i class="bi bi-capsule card-icon"></i>
+            </a>
+            <div class="card-label">Vacunas</div>
+        </div>
     }
 </div>

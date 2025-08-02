@@ -1,4 +1,5 @@
-﻿using SoftPets.Models;
+﻿using SoftPets.Filters;
+using SoftPets.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -10,6 +11,7 @@ using System.Web.Mvc;
 
 namespace SoftPets.Controllers
 {
+    [RequiereDatosCompletos]
     public class DueniosController : Controller
     {
         // GET: Duenios
@@ -475,7 +477,7 @@ namespace SoftPets.Controllers
                         cmd.Parameters.AddWithValue("@DNI", model.DNI ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Celular", model.Celular ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Direccion", model.Direccion ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                        cmd.Parameters.AddWithValue("@Estado", 1);
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }

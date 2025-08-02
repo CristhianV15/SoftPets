@@ -4,142 +4,77 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .usuarios-container {
-        max-width: 900px;
-        margin: 30px auto;
-        background: #fff;
-        padding: 25px 30px 15px 30px;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-    }
+<div class="main-content-bg">
+    <div class="usuarios-container">
+        <h2 class="text-center mb-4">@ViewBag.Title</h2>
+        <div class="mb-3 text-center">
+            @Html.ActionLink("Crear Nuevo", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo" })
+        </div>
+        <div class="mb-3 text-center">
+            <input type="text" id="filtroUsuario" class="form-control" style="max-width:300px;display:inline-block;" placeholder="Buscar por nombre de usuario..." />
+        </div>
 
-    .usuarios-table th, .usuarios-table td {
-        vertical-align: middle !important;
-        white-space: nowrap;
-    }
-
-    /* Botón Crear Nuevo, Detalles y Editar: gris oscuro elegante */
-    .btn-unificado {
-        color: #444;
-        border: 2px solid #444;
-        background: #fff;
-        border-radius: 6px;
-        padding: 4px 16px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        transition: background 0.2s, color 0.2s, border-color 0.2s;
-        margin-bottom: 0;
-    }
-
-        .btn-unificado:hover, .btn-unificado:focus {
-            background: rgba(68,68,68,0.10);
-            color: #222;
-            border-color: #222;
-        }
-
-    .btn-crear-nuevo {
-        margin-bottom: 18px;
-        padding: 8px 24px;
-    }
-
-    .acciones-btn-group {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-        .acciones-btn-group .btn {
-            min-width: 95px;
-        }
-
-    .modal-details-label {
-        font-weight: 600;
-        color: #444;
-    }
-
-    .modal-details-value {
-        font-weight: 400;
-        color: #333;
-    }
-    /* Borde elegante al modal de detalles */
-    #detailsModal .modal-content {
-        border: 2px solid #444;
-        border-radius: 12px;
-        box-shadow: 0 2px 12px rgba(68,68,68,0.12);
-    }
-</style>
-
-<div class="usuarios-container">
-    <h2 class="text-center mb-4">@ViewBag.Title</h2>
-    <div class="mb-3 text-center">
-        @Html.ActionLink("Crear Nuevo", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo" })
-    </div>
-    <div class="mb-3 text-center">
-        <input type="text" id="filtroUsuario" class="form-control" style="max-width:300px;display:inline-block;" placeholder="Buscar por nombre de usuario..." />
-    </div>
-
-    <table class="table table-hover usuarios-table">
-        <thead class="table-light">
-            <tr>
-                <th>Nombre de usuario</th>
-                <th>Correo</th>
-                <th>@Html.DisplayNameFor(m => m.RolNombre)</th>
-                <th>@Html.DisplayNameFor(m => m.Estado)</th>
-                <th class="text-center">Opciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.Any())
-            {
-                foreach (var item in Model)
+        <table class="table table-hover usuarios-table">
+            <thead>
+                <tr>
+                    <th>Nombre de usuario</th>
+                    <th>Correo</th>
+                    <th>@Html.DisplayNameFor(m => m.RolNombre)</th>
+                    <th>@Html.DisplayNameFor(m => m.Estado)</th>
+                    <th class="text-center">Opciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.Email</td>
+                            <td>@item.RolNombre</td>
+                            <td>
+                                <span class="badge @(item.Estado == '1' ? "bg-success" : "bg-secondary")">
+                                    @(item.Estado == '1' ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td class="text-center acciones-btn-group">
+                                <button type="button"
+                                        class="btn btn-unificado btn-sm btn-detalles"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#detailsModal"
+                                        data-userid="@item.Id"
+                                        data-username="@item.Nombre"
+                                        data-useremail="@item.Email"
+                                        data-userrol="@item.RolNombre"
+                                        data-userestado="@(item.Estado == '1' ? "Activo" : "Inactivo")"
+                                        data-fechacreacion="@item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")"
+                                        data-fechaactualizacion="@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToString("dd/MM/yyyy HH:mm") : "-")">
+                                    Detalles
+                                </button>
+                                @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-unificado btn-sm" })
+                                <button type="button"
+                                        class="btn btn-outline-@(item.Estado == '1' ? "danger" : "success") btn-sm btn-activar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmModal"
+                                        data-userid="@item.Id"
+                                        data-username="@item.Nombre"
+                                        data-userestado="@item.Estado">
+                                    @(item.Estado == '1' ? "Desactivar" : "Activar")
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@item.Nombre</td>
-                        <td>@item.Email</td>
-                        <td>@item.RolNombre</td>
-                        <td>
-                            <span class="badge @(item.Estado == '1' ? "bg-success" : "bg-secondary")">
-                                @(item.Estado == '1' ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td class="text-center acciones-btn-group">
-                            <button type="button"
-                                    class="btn btn-unificado btn-sm btn-detalles"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#detailsModal"
-                                    data-userid="@item.Id"
-                                    data-username="@item.Nombre"
-                                    data-useremail="@item.Email"
-                                    data-userrol="@item.RolNombre"
-                                    data-userestado="@(item.Estado == '1' ? "Activo" : "Inactivo")"
-                                    data-fechacreacion="@item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")"
-                                    data-fechaactualizacion="@(item.FechaActualizacion.HasValue ? item.FechaActualizacion.Value.ToString("dd/MM/yyyy HH:mm") : "-")">
-                                Detalles
-                            </button>
-                            @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-unificado btn-sm" })
-                            <button type="button"
-                                    class="btn btn-outline-@(item.Estado == '1' ? "danger" : "success") btn-sm btn-activar"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#confirmModal"
-                                    data-userid="@item.Id"
-                                    data-username="@item.Nombre"
-                                    data-userestado="@item.Estado">
-                                @(item.Estado == '1' ? "Desactivar" : "Activar")
-                            </button>
-                        </td>
+                        <td colspan="5" class="text-center text-muted">No hay usuarios registrados.</td>
                     </tr>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted">No hay usuarios registrados.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Modal de confirmación -->
@@ -225,51 +160,56 @@
 
         // Modal de confirmación activar/desactivar
         var confirmModal = document.getElementById('confirmModal');
-        confirmModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            var userId = button.getAttribute('data-userid');
-            var userName = button.getAttribute('data-username');
-            var userEstado = button.getAttribute('data-userestado');
-            var accion = userEstado === '1' ? 'desactivar' : 'activar';
+        if (confirmModal) {
+            confirmModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var userId = button.getAttribute('data-userid');
+                var userName = button.getAttribute('data-username');
+                var userEstado = button.getAttribute('data-userestado');
+                var accion = userEstado === '1' ? 'desactivar' : 'activar';
 
-            document.getElementById('modalUserId').value = userId;
-            document.getElementById('modalUserEstado').value = userEstado;
-            document.getElementById('modalUserName').value = userName;
-            document.getElementById('modalMessage').innerText = `¿Seguro que deseas ${accion} al usuario "${userName}"?`;
-            document.getElementById('confirmBtn').innerText = userEstado === '1' ? 'Desactivar' : 'Activar';
+                document.getElementById('modalUserId').value = userId;
+                document.getElementById('modalUserEstado').value = userEstado;
+                document.getElementById('modalUserName').value = userName;
+                document.getElementById('modalMessage').innerText = `¿Seguro que deseas ${accion} al usuario "${userName}"?`;
+                document.getElementById('confirmBtn').innerText = userEstado === '1' ? 'Desactivar' : 'Activar';
 
-            // Cambia el color del botón según la acción
-            document.getElementById('confirmBtn').className = userEstado === '1'
-                ? 'btn btn-danger'
-                : 'btn btn-success';
-        });
+                // Cambia el color del botón según la acción
+                document.getElementById('confirmBtn').className = userEstado === '1'
+                    ? 'btn btn-outline-danger'
+                    : 'btn btn-outline-success';
+            });
+        }
 
-        document.getElementById('estadoForm').onsubmit = function (e) {
-            e.preventDefault();
-            var userId = document.getElementById('modalUserId').value;
-            var userName = document.getElementById('modalUserName').value;
-            var userEstado = document.getElementById('modalUserEstado').value;
-            var accion = userEstado === '1' ? 'desactivó' : 'activó';
+        var estadoForm = document.getElementById('estadoForm');
+        if (estadoForm) {
+            estadoForm.onsubmit = function (e) {
+                e.preventDefault();
+                var userId = document.getElementById('modalUserId').value;
+                var userName = document.getElementById('modalUserName').value;
+                var userEstado = document.getElementById('modalUserEstado').value;
+                var accion = userEstado === '1' ? 'desactivó' : 'activó';
 
-            var form = document.createElement('form');
-            form.method = 'post';
-            form.action = '@Url.Action("DeleteConfirmed", "Usuarios")';
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'id';
-            input.value = userId;
-            form.appendChild(input);
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = '@Url.Action("DeleteConfirmed", "Usuarios")';
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'id';
+                input.value = userId;
+                form.appendChild(input);
 
-            // Agrega el token antiforgery
-            var token = document.createElement('input');
-            token.type = 'hidden';
-            token.name = '__RequestVerificationToken';
-            token.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            form.appendChild(token);
+                // Agrega el token antiforgery
+                var token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = '__RequestVerificationToken';
+                token.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.appendChild(token);
 
-            document.body.appendChild(form);
-            form.submit();
-        };
+                document.body.appendChild(form);
+                form.submit();
+            };
+        }
 
         // Modal de detalles (robusto)
         document.querySelectorAll('.btn-detalles').forEach(function (btn) {
@@ -283,30 +223,4 @@
             });
         });
     </script>
-
-    @if (TempData["SwalUsuario"] != null)
-    {
-        <script>
-        Swal.fire({
-            icon: 'success',
-            title: '¡Usuario actualizado correctamente!',
-            text: 'El usuario "@Html.Raw(TempData["SwalUsuario"].ToString())" fue actualizado.',
-            showConfirmButton: false,
-            timer: 2000
-        });
-        </script>
-    }
-
-    @if (TempData["SwalUsuarioEditado"] != null)
-    {
-        <script>
-        Swal.fire({
-            icon: 'success',
-            title: '¡Usuario actualizado correctamente!',
-            text: 'El usuario "@Html.Raw(TempData["SwalUsuarioEditado"].ToString())" fue editado.',
-            showConfirmButton: false,
-            timer: 2000
-        });
-        </script>
-    }
 }

@@ -1,4 +1,5 @@
-﻿using SoftPets.Models;
+﻿using SoftPets.Filters;
+using SoftPets.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -7,6 +8,8 @@ using System.Web.Mvc;
 
 namespace SoftPets.Controllers
 {
+    [RequiereDatosCompletos]
+
     public class VacunacionesController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;

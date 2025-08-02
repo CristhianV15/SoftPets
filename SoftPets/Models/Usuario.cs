@@ -21,6 +21,7 @@ namespace SoftPets.Models
         [EmailAddress(ErrorMessage = "Ingrese un email válido.")]
         public string Email { get; set; }
 
+        [Display(Name = "Contraseña")]
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [StringLength(255, ErrorMessage = "La contraseña no puede tener más de 255 caracteres.")]
         public string Contrasenia { get; set; }

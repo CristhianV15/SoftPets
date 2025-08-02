@@ -1,4 +1,5 @@
-﻿using SoftPets.Models;
+﻿using SoftPets.Filters;
+using SoftPets.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -7,6 +8,8 @@ using System.Web.Mvc;
 
 namespace SoftPets.Controllers
 {
+    [RequiereDatosCompletos]
+
     public class TendenciasController : Controller
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
@@ -75,6 +78,39 @@ namespace SoftPets.Controllers
             }
             ViewBag.MascotaId = model.MascotaId;
             return View(model);
+        }
+
+        // Nuevo: Gráfico de tendencias
+        public ActionResult Grafico(int mascotaId)
+        {
+            var lista = new List<Tendencia>();
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("TendenciasSelectByMascota", con))
+            {
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@MascotaId", mascotaId);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        lista.Add(new Tendencia
+                        {
+                            Id = (int)dr["Id"],
+                            MascotaId = (int)dr["MascotaId"],
+                            Fecha = dr["Fecha"] != DBNull.Value ? (DateTime?)dr["Fecha"] : null,
+                            Peso = dr["Peso"] != DBNull.Value ? (decimal?)dr["Peso"] : null,
+                            Temperatura = dr["Temperatura"] != DBNull.Value ? (decimal?)dr["Temperatura"] : null,
+                            Otros = dr["Otros"].ToString(),
+                            Estado = dr["Estado"].ToString()[0],
+                            FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"])
+                        });
+                    }
+                }
+            }
+            ViewBag.MascotaId = mascotaId;
+            ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId);
+            return View(lista);
         }
 
         // Helper

@@ -6,69 +6,33 @@
     string nombreMascota = ViewBag.NombreMascota;
 }
 
-<style>
-    .table-custom {
-        margin: 30px auto;
-        max-width: 800px;
-        background: #fff;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-        .table-custom th, .table-custom td {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table-custom th {
-            background: #006C67;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1em;
-            letter-spacing: 1px;
-        }
-
-        .table-custom tr:nth-child(even) {
-            background: #F8F9FA;
-        }
-
-    .btn-crear {
-        border: 2px solid #CBDF90;
-        color: #222 !important;
-        background: #fff !important;
-        font-weight: 600;
-        letter-spacing: 1px;
-        box-shadow: 0 2px 8px rgba(203,223,144,0.08);
-        transition: background 0.2s, color 0.2s;
-    }
-
-        .btn-crear:hover, .btn-crear:focus {
-            background: #CBDF90 !important;
-            color: #fff !important;
-        }
-</style>
-
-<h2 class="text-center mb-4">Tendencias de Salud de @nombreMascota</h2>
-<p class="text-center">
-    @Html.ActionLink("Registrar Tendencia", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-crear mb-3" })
-</p>
-<table class="table table-custom">
-    <tr>
-        <th>Fecha</th>
-        <th>Peso (kg)</th>
-        <th>Temperatura (°C)</th>
-        <th>Otros</th>
-        <th>Fecha Registro</th>
-    </tr>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@(item.Fecha.HasValue ? item.Fecha.Value.ToShortDateString() : "")</td>
-            <td>@item.Peso</td>
-            <td>@item.Temperatura</td>
-            <td>@item.Otros</td>
-            <td>@item.FechaCreacion.ToShortDateString()</td>
-        </tr>
-    }
-</table>
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Tendencias de Salud de @nombreMascota</h2>
+        <p class="text-center">
+            @Html.ActionLink("Registrar Tendencia", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+            <a href="@Url.Action("Grafico", new { mascotaId = mascotaId })" class="btn btn-unificado btn-crear-nuevo mb-3 ms-2">
+                <i class="bi bi-bar-chart-line"></i> Ver Gráfico
+            </a>
+        </p>
+        <table class="table table-custom">
+            <tr>
+                <th>Fecha</th>
+                <th>Peso (kg)</th>
+                <th>Temperatura (°C)</th>
+                <th>Otros</th>
+                <th>Fecha Registro</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.Fecha.HasValue ? item.Fecha.Value.ToString("dd/MM/yyyy") : "")</td>
+                    <td>@item.Peso</td>
+                    <td>@item.Temperatura</td>
+                    <td>@item.Otros</td>
+                    <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

@@ -137,6 +137,7 @@
     <Compile Include="Controllers\VacunacionesController.cs" />
     <Compile Include="Controllers\VacunasController.cs" />
     <Compile Include="Controllers\VeterinariosController.cs" />
+    <Compile Include="Filters\RequiereDatosCompletosAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -218,6 +219,7 @@
     <Content Include="Views\Mascotas\Index.cshtml" />
     <Content Include="Views\Mascotas\Create.cshtml" />
     <Content Include="Views\Mascotas\Details.cshtml" />
+    <Content Include="Views\Tendencias\Grafico.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
