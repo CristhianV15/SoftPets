@@ -6,69 +6,69 @@
 
 <h2 class="text-center mb-4">Crear Nueva Vacuna</h2>
 
-@using (Html.BeginForm())
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "vacunaForm", @class = "form-horizontal" }))
 {
     @Html.AntiForgeryToken()
-    <div class="form-horizontal">
-        <div id="errorMsg" class="error-message"></div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Descripcion, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Descripcion, new { @class = "form-control", maxlength = 255, id = "Descripcion" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Lote, new { @class = "form-label" })
-            @Html.TextBoxFor(m => m.Lote, new { @class = "form-control", maxlength = 50, id = "Lote" })
-        </div>
-        <div class="form-group mb-3">
-            @Html.LabelFor(m => m.Estado, new { @class = "form-label" })
-            @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
-                    new SelectListItem { Text = "Activo", Value = "1" },
-                    new SelectListItem { Text = "Inactivo", Value = "0" }
-                }, "Seleccione el estado", new { @class = "form-control", id = "Estado" })
-        </div>
-        <div class="form-group mt-3">
-            <input type="submit" value="Crear" class="btn btn-unificado" />
-            @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
-        </div>
+    <div id="errorMsg" class="error-message"></div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Descripcion, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Descripcion, new { @class = "form-control", maxlength = 255, id = "Descripcion" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Lote, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Lote, new { @class = "form-control", maxlength = 50, id = "Lote" })
+    </div>
+    @*<div class="form-group mb-3" style="display:none;">
+        @Html.LabelFor(m => m.Estado, new { @class = "form-label" })
+        @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
+                new SelectListItem { Text = "Activo", Value = "1" },
+                new SelectListItem { Text = "Inactivo", Value = "0" }
+            }, "Seleccione el estado", new { @class = "form-control combo-destacado", id = "Estado" })
+    </div>*@
+    <div class="form-group mt-3 text-center">
+        <input type="submit" value="Crear" class="btn btn-unificado" />
+        @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
     </div>
 }
 
-<script>
-    document.querySelector('form').onsubmit = function (e) {
-        var nombre = document.getElementById('Nombre').value.trim();
-        var descripcion = document.getElementById('Descripcion').value.trim();
-        var lote = document.getElementById('Lote').value.trim();
-        var estado = document.getElementById('Estado').value;
-        var errorMsg = document.getElementById('errorMsg');
-        errorMsg.style.display = 'none';
-        errorMsg.innerText = '';
-        if (!nombre) {
-            errorMsg.innerText = "El nombre de la vacuna es obligatorio.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!descripcion) {
-            errorMsg.innerText = "La descripción es obligatoria.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!lote) {
-            errorMsg.innerText = "El lote es obligatorio.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!estado) {
-            errorMsg.innerText = "Debe seleccionar el estado.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-    };
-</script>
+@section Scripts {
+    <script>
+        document.getElementById('vacunaForm').onsubmit = function (e) {
+            var nombre = document.getElementById('Nombre').value.trim();
+            var descripcion = document.getElementById('Descripcion').value.trim();
+            var lote = document.getElementById('Lote').value.trim();
+            /*var estado = document.getElementById('Estado').value;*/
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+            if (!nombre) {
+                errorMsg.innerText = "El nombre de la vacuna es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!descripcion) {
+                errorMsg.innerText = "La descripción es obligatoria.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!lote) {
+                errorMsg.innerText = "El lote es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            //if (!estado) {
+            //    errorMsg.innerText = "Debe seleccionar el estado.";
+            //    errorMsg.style.display = 'block';
+            //    e.preventDefault();
+            //    return false;
+            //}
+        };
+    </script>
+}

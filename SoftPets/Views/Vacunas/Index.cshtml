@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Lista de Vacunas";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var lotes = Model.Select(v => v.Lote).Distinct().OrderBy(x => x).ToList();
 }
 
 <div class="main-content-bg">
@@ -10,6 +11,18 @@
         <p class="text-center">
             @Html.ActionLink("Crear Nueva", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
+        <div class="mb-3 text-center">
+            <input type="text" id="filtroNombre" class="form-control" style="max-width:180px;display:inline-block;" placeholder="Buscar por nombre..." />
+            <input type="text" id="filtroLote" class="form-control" style="max-width:140px;display:inline-block;margin-left:8px;" placeholder="Buscar por lote..." />
+            <select id="filtroEstado" class="form-control combo-destacado" style="max-width:130px;display:inline-block;margin-left:8px;">
+                <option value="">Estado</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+            </select>
+            <button type="button" id="btnLimpiarFiltros" class="btn btn-unificado btn-sm ms-2" title="Limpiar filtros">
+                <i class="bi bi-x-circle"></i>
+            </button>
+        </div>
         <table class="table table-custom" id="tablaVacunas">
             <tr>
                 <th>@Html.DisplayNameFor(m => m.Nombre)</th>
@@ -24,9 +37,9 @@
                 var accion = item.Estado == '1' ? "desactivar" : "activar";
                 var color = item.Estado == '1' ? "danger" : "success";
                 <tr>
-                    <td>@item.Nombre</td>
-                    <td>@item.Descripcion</td>
-                    <td>@item.Lote</td>
+                    <td title="@item.Nombre">@item.Nombre</td>
+                    <td class="descripcion-multilinea" title="@item.Descripcion">@item.Descripcion</td>
+                    <td title="@item.Lote">@item.Lote</td>
                     <td>
                         <span class="badge @(item.Estado == '1' ? "bg-success" : "bg-secondary")">
                             @(item.Estado == '1' ? "Activo" : "Inactivo")
@@ -132,6 +145,46 @@
         modal.show();
     }
 
+    // Filtros por nombre, lote y estado
+    document.getElementById('filtroNombre').addEventListener('keyup', filtrarVacunas);
+    document.getElementById('filtroLote').addEventListener('keyup', filtrarVacunas);
+    document.getElementById('filtroEstado').addEventListener('change', filtrarVacunas);
+
+    function filtrarVacunas() {
+        var filtroNombre = document.getElementById('filtroNombre').value.toLowerCase();
+        var filtroLote = document.getElementById('filtroLote').value.toLowerCase();
+        var filtroEstado = document.getElementById('filtroEstado').value;
+        var filas = document.querySelectorAll('#tablaVacunas tbody tr');
+        filas.forEach(function (fila) {
+            var tds = fila.querySelectorAll('td');
+            if (tds.length < 6) return;
+            var nombre = tds[0].innerText.toLowerCase();
+            var descripcion = tds[1].innerText.toLowerCase();
+            var lote = tds[2].innerText.toLowerCase();
+            var estadoTd = tds[3].innerText.toLowerCase();
+            var mostrar = true;
+            if (filtroNombre && nombre.indexOf(filtroNombre) === -1) mostrar = false;
+            if (filtroLote && lote.indexOf(filtroLote) === -1) mostrar = false;
+            if (filtroEstado) {
+                // Solo compara el texto puro, sin iconos ni espacios extra
+                var estadoLimpio = estadoTd.replace(/[^a-zA-Z]/g, '').trim(); // Solo letras, sin iconos
+                if (filtroEstado === "activo" && estadoLimpio !== "activo") mostrar = false;
+                if (filtroEstado === "inactivo" && estadoLimpio !== "inactivo") mostrar = false;
+            }
+            fila.style.display = mostrar ? '' : 'none';
+
+
+
+
+            document.getElementById('btnLimpiarFiltros').onclick = function () {
+                document.getElementById('filtroNombre').value = '';
+                document.getElementById('filtroLote').value = '';
+                document.getElementById('filtroEstado').selectedIndex = 0;
+                filtrarVacunas();
+            };
+        });
+    }
+
     // Swal Fire tras cambio de estado
     @if (TempData["SwalVacuna"] != null && TempData["SwalAccion"] != null)
     {
@@ -145,4 +198,33 @@
         });
         </text>
     }
+
+
+    @if (TempData["SwalVacunaCreada"] != null)
+    {
+        <text>
+            Swal.fire({
+                icon: 'success',
+                title: '¡Vacuna creada!',
+                text: 'La vacuna "@Html.Raw(TempData["SwalVacunaCreada"].ToString())" se creó correctamente.',
+                showConfirmButton: false,
+                timer: 1800
+            });
+        </text>
+}
+
+
+        @if (TempData["SwalVacunaEditada"] != null)
+{
+        <text>
+        Swal.fire({
+            icon: 'success',
+            title: '¡Vacuna actualizada!',
+            text: 'La vacuna "@Html.Raw(TempData["SwalVacunaEditada"].ToString())" fue actualizada correctamente.',
+            showConfirmButton: false,
+            timer: 1800
+        });
+        </text>
+}
+
 </script>

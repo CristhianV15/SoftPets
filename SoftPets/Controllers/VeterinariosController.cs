@@ -78,7 +78,7 @@ namespace SoftPets.Controllers
                             cmd.Parameters.AddWithValue("@Nombre", model.Nombre ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@Colegio", model.Colegio ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@CMP", model.CMP ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                            cmd.Parameters.AddWithValue("@Estado", 1);
                             con.Open();
                             cmd.ExecuteNonQuery();
                         }
@@ -96,7 +96,7 @@ namespace SoftPets.Controllers
                             cmd.Parameters.AddWithValue("@Nombre", model.Nombre ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@Colegio", model.Colegio ?? (object)DBNull.Value);
                             cmd.Parameters.AddWithValue("@CMP", model.CMP ?? (object)DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                            cmd.Parameters.AddWithValue("@Estado", 1);
                             con.Open();
                             cmd.ExecuteNonQuery();
                         }

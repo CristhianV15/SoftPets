@@ -1,56 +1,75 @@
 ﻿@model SoftPets.Models.Vacuna
 @{
     ViewBag.Title = "Editar Vacuna";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Editar Vacuna</h2>
+<h2 class="text-center mb-4">Editar Vacuna</h2>
 
-@using (Html.BeginForm())
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "vacunaEditForm", @class = "form-horizontal" }))
 {
     @Html.AntiForgeryToken()
     @Html.HiddenFor(m => m.Id)
-<div class="form-horizontal">
-    <hr />
-    @Html.ValidationSummary(true)
+    <div id="errorMsg" class="error-message"></div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Descripcion, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Descripcion, new { @class = "form-control", maxlength = 255, id = "Descripcion" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Lote, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Lote, new { @class = "form-control", maxlength = 50, id = "Lote" })
+    </div>
+    <div class="form-group mb-3" style="display:none;">
+        @Html.LabelFor(m => m.Estado, new { @class = "form-label" })
+        @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
+                new SelectListItem { Text = "Activo", Value = "1" },
+                new SelectListItem { Text = "Inactivo", Value = "0" }
+            }, "Seleccione el estado", new { @class = "form-control combo-destacado", id = "Estado" })
+    </div>
+    <div class="form-group mt-3 text-center">
+        <input type="submit" value="Guardar" class="btn btn-unificado" />
+        @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
+    </div>
+}
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(m => m.Nombre)
-            @Html.ValidationMessageFor(m => m.Nombre)
-        </div>
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(m => m.Descripcion)
-            @Html.ValidationMessageFor(m => m.Descripcion)
-        </div>
-    </div>
-    <div class="form-group">
-        @Html.LabelFor(m => m.Lote, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(m => m.Lote)
-            @Html.ValidationMessageFor(m => m.Lote)
-        </div>
-    </div>
-    <div class="form-group">
-        @Html.HiddenFor(m => m.Estado) <!-- Campo oculto para el estado -->
-        
-        <div class="col-md-10">
-            @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
-                    new SelectListItem { Text = "Activo", Value = "1" },
-                    new SelectListItem { Text = "Inactivo", Value = "0" }
-                }, "Seleccione el estado", new { @style = "display:none;" }) <!-- Ocultar el dropdown -->
-            @Html.ValidationMessageFor(m => m.Estado)
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Guardar" class="btn btn-primary" />
-            @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-default" })
-        </div>
-    </div>
-</div>
+@section Scripts {
+    <script>
+        document.getElementById('vacunaEditForm').onsubmit = function (e) {
+            var nombre = document.getElementById('Nombre').value.trim();
+            var descripcion = document.getElementById('Descripcion').value.trim();
+            var lote = document.getElementById('Lote').value.trim();
+            var estado = document.getElementById('Estado').value;
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+            if (!nombre) {
+                errorMsg.innerText = "El nombre de la vacuna es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!descripcion) {
+                errorMsg.innerText = "La descripción es obligatoria.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!lote) {
+                errorMsg.innerText = "El lote es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!estado) {
+                errorMsg.innerText = "Debe seleccionar el estado.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        };
+    </script>
 }

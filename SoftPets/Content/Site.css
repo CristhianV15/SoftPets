@@ -610,3 +610,32 @@ body {
         margin-bottom: 12px;
     }
 }
+
+/* ========== TABLAS: CELDAS CON ANCHO Y MULTILÍNEA SOLO EN DESCRIPCIÓN ========== */
+.table-custom td, .usuarios-table td, .tabla-container td {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle !important;
+    padding: 8px 12px;
+}
+
+    .table-custom td.descripcion-multilinea {
+        max-width: 320px;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+.table-custom th, .usuarios-table th, .tabla-container th {
+    white-space: nowrap;
+    vertical-align: middle !important;
+}
+
+.table-custom td.acciones-btn-group,
+.usuarios-table td.acciones-btn-group,
+.tabla-container td.acciones-btn-group {
+    max-width: none;
+    white-space: normal;
+}

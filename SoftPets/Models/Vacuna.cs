@@ -15,6 +15,7 @@ namespace SoftPets.Models
         [StringLength(100)]
         public string Nombre { get; set; }
 
+        [Display(Name = "Descripción")]
         [StringLength(255)]
         public string Descripcion { get; set; }
 
@@ -24,9 +25,11 @@ namespace SoftPets.Models
         [Required]
         public char Estado { get; set; } // '1' = Activo, '0' = Inactivo
 
+        [Display(Name = "F. Creación")]
         [Required]
         public DateTime FechaCreacion { get; set; }
 
+        [Display(Name = "F. Actualización")]
         public DateTime? FechaActualizacion { get; set; }
 
         // Relaciones

@@ -108,17 +108,17 @@ namespace SoftPets.Controllers
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                         cmd.Parameters.AddWithValue("@Descripcion", (object)model.Descripcion ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                        cmd.Parameters.AddWithValue("@Estado", 1); // Siempre activa al crear
 
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
                 }
+                TempData["SwalVacunaCreada"] = model.Nombre;
                 return RedirectToAction("Index");
             }
             return View(model);
         }
-
         // GET: Vacunas/Edit/5
         public ActionResult Edit(int id)
         {
@@ -179,6 +179,7 @@ namespace SoftPets.Controllers
                         cmd.ExecuteNonQuery();
                     }
                 }
+                TempData["SwalVacunaEditada"] = model.Nombre;
                 return RedirectToAction("Index");
             }
             return View(model);
