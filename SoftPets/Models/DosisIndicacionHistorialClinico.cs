@@ -11,7 +11,7 @@ namespace SoftPets.Models
 
         [Required]
         [Display(Name = "Indicación Historial Clínico")]
-        public int IndicacionHistorialClinicoId { get; set; }
+        public int IndicacionesHistorialesClinicosId { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -43,7 +43,7 @@ namespace SoftPets.Models
         public string EstadoAlerta { get; set; }
 
         // Relaciones
-        [ForeignKey("IndicacionHistorialClinicoId")]
+        [ForeignKey("IndicacionesHistorialesClinicosId")]
         public virtual IndicacionHistorialClinico IndicacionHistorialClinico { get; set; }
     }
 }

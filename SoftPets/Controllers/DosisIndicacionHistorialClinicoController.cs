@@ -176,7 +176,7 @@ WHERE h.DuenioId = @DuenioId
                             lista.Add(new DosisIndicacionHistorialClinico
                             {
                                 Id = (int)dr["Id"],
-                                IndicacionHistorialClinicoId = (int)dr["IndicacionesHistorialesClinicosId"],
+                                IndicacionesHistorialesClinicosId = (int)dr["IndicacionesHistorialesClinicosId"],
                                 Dosis = dr["Dosis"].ToString(),
                                 IntervaloCantidad = (int)dr["IntervaloCantidad"],
                                 IntervaloTipo = dr["IntervaloTipo"].ToString(),
@@ -263,9 +263,9 @@ WHERE h.DuenioId = @DuenioId
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"INSERT INTO DosisIndicacionesHistorialesClinicos 
                         (IndicacionesHistorialesClinicosId, Dosis, IntervaloCantidad, IntervaloTipo, CantidadTotalDosis, FechaInicioDosis, FechaFinDosis, EstadoAlerta)
-                        VALUES (@IndicacionHistorialClinicoId, @Dosis, @IntervaloCantidad, @IntervaloTipo, @CantidadTotalDosis, @FechaInicioDosis, @FechaFinDosis, @EstadoAlerta)", con))
+                        VALUES (@IndicacionesHistorialesClinicosId, @Dosis, @IntervaloCantidad, @IntervaloTipo, @CantidadTotalDosis, @FechaInicioDosis, @FechaFinDosis, @EstadoAlerta)", con))
                     {
-                        cmd.Parameters.AddWithValue("@IndicacionHistorialClinicoId", model.IndicacionHistorialClinicoId);
+                        cmd.Parameters.AddWithValue("@IndicacionesHistorialesClinicosId", model.IndicacionesHistorialesClinicosId);
                         cmd.Parameters.AddWithValue("@Dosis", model.Dosis);
                         cmd.Parameters.AddWithValue("@IntervaloCantidad", model.IntervaloCantidad);
                         cmd.Parameters.AddWithValue("@IntervaloTipo", model.IntervaloTipo);
@@ -277,14 +277,14 @@ WHERE h.DuenioId = @DuenioId
                         cmd.ExecuteNonQuery();
                     }
                     TempData["SwalMascotaEditada"] = "Dosis creada correctamente";
-                    return RedirectToAction("Index", new { indicacionHistorialClinicoId = model.IndicacionHistorialClinicoId });
+                    return RedirectToAction("Index", new { IndicacionesHistorialesClinicosId = model.IndicacionesHistorialesClinicosId });
                 }
                 catch (Exception ex)
                 {
                     TempData["SwalError"] = "Error al crear dosis: " + ex.Message;
                 }
             }
-            ViewBag.IndicacionesHistorialesClinicosId = model.IndicacionHistorialClinicoId;
+            ViewBag.IndicacionesHistorialesClinicosId = model.IndicacionesHistorialesClinicosId;
             return View(model);
         }
 
@@ -306,7 +306,7 @@ WHERE h.DuenioId = @DuenioId
                             model = new DosisIndicacionHistorialClinico
                             {
                                 Id = (int)dr["Id"],
-                                IndicacionHistorialClinicoId = (int)dr["IndicacionesHistorialesClinicosId"],
+                                IndicacionesHistorialesClinicosId = (int)dr["IndicacionesHistorialesClinicosId"],
                                 Dosis = dr["Dosis"].ToString(),
                                 IntervaloCantidad = (int)dr["IntervaloCantidad"],
                                 IntervaloTipo = dr["IntervaloTipo"].ToString(),
@@ -363,19 +363,19 @@ WHERE h.DuenioId = @DuenioId
                         cmd.ExecuteNonQuery();
                     }
                     TempData["SwalMascotaEditada"] = "Dosis editada correctamente";
-                    return RedirectToAction("Index", new { indicacionHistorialClinicoId = model.IndicacionHistorialClinicoId });
+                    return RedirectToAction("Index", new { IndicacionesHistorialesClinicosId = model.IndicacionesHistorialesClinicosId });
                 }
                 catch (Exception ex)
                 {
                     TempData["SwalError"] = "Error al editar dosis: " + ex.Message;
                 }
             }
-            ViewBag.IndicacionHistorialClinicoId = model.IndicacionHistorialClinicoId;
+            ViewBag.IndicacionesHistorialesClinicosId = model.IndicacionesHistorialesClinicosId;
             return View(model);
         }
 
         // Eliminar dosis
-        public ActionResult Delete(int id, int indicacionHistorialClinicoId)
+        public ActionResult Delete(int id, int IndicacionesHistorialesClinicosId)
         {
             try
             {
@@ -392,7 +392,7 @@ WHERE h.DuenioId = @DuenioId
             {
                 TempData["SwalError"] = "Error al eliminar dosis: " + ex.Message;
             }
-            return RedirectToAction("Index", new { indicacionHistorialClinicoId = indicacionHistorialClinicoId });
+            return RedirectToAction("Index", new { IndicacionesHistorialesClinicosId = IndicacionesHistorialesClinicosId });
         }
     }
 }
