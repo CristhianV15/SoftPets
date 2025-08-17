@@ -69,6 +69,29 @@
                         </a>
                     </li>
                 }
+                <!--Solo dueño de mascota-->
+                @if (rolId == 2)
+                {
+                    <!-- Historial Emergencia -->
+                    <li>
+                        <a class="nav-link" href="@Url.Action("IndexEmergenciaPorDuenio", "HistorialClinico")">
+                            <i class="bi bi-exclamation-triangle card-historiales card-icon"></i> Historial Emergencia
+                        </a>
+                    </li>
+                    <!-- Historial Consulta -->
+                    <li>
+                        <a class="nav-link" href="@Url.Action("IndexConsultaPorDuenio", "HistorialClinico")">
+                            <i class="bi bi-journal-text card-historiales card-icon"></i> Historial Consulta
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link" href="@Url.Action("IndexGeneral", "DosisIndicacionHistorialClinico")">
+                            <i class="bi bi-capsule-pill card-historiales card-icon"></i> Mis Dosis
+                        </a>
+                    </li>
+
+                }
                 <!-- Dueños (admin y veterinario) -->
                 @if (rolId == 1 || rolId == 3)
                 {

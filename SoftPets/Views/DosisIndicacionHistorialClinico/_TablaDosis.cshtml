@@ -1,0 +1,28 @@
+﻿@model IEnumerable<SoftPets.Models.DosisIndicacionHistorialClinicoGeneralVM>
+<table class="table table-custom">
+    <tr>
+        <th>Mascota</th>
+        <th>Motivo</th>
+        <th>Medicamento</th>
+        <th>Indicación</th>
+        <th>Dosis</th>
+        <th>Frecuencia</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Estado</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.NombreMascota</td>
+            <td>@item.Motivo</td>
+            <td>@item.Medicamento</td>
+            <td>@item.Indicacion</td>
+            <td>@item.Dosis</td>
+            <td>@item.IntervaloCantidad @item.IntervaloTipo</td>
+            <td>@item.FechaInicioDosis.ToString("dd/MM/yyyy HH:mm")</td>
+            <td>@(item.FechaFinDosis.HasValue ? item.FechaFinDosis.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+            <td>@item.EstadoAlerta</td>
+        </tr>
+    }
+</table>

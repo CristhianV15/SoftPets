@@ -1,19 +1,45 @@
 ﻿@model SoftPets.Models.Mascota
 @{
+    int? rolId = Session["RolId"] as int?;
+    bool esAdminOVet = rolId == 1 || rolId == 3;
+    string dniDueño = esAdminOVet ? "" : (Session["DniDueño"] as string ?? "");
     ViewBag.Title = "Registrar Mascota";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    int maxMb = 5; // Cambia a 7 si quieres 7 MB
 }
 
 <h2 class="text-center mb-4">@ViewBag.Title</h2>
 
-@using (Html.BeginForm("Create", "Mascotas", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal" }))
+@using (Html.BeginForm("Create", "Mascotas", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", id = "mascotaForm" }))
 {
     @Html.AntiForgeryToken()
     <div id="errorMsg" class="error-message"></div>
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
-    </div>
+
+    if (esAdminOVet)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">DNI del Dueño</label>
+            <input type="text" id="DniDueño" name="DniDueño" class="form-control" maxlength="8" autocomplete="off"
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,8);buscarDuenoPorDni();" />
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Nombre del Dueño</label>
+            <input type="text" id="NombreDueño" class="form-control" readonly style="background:#e9ecef;" />
+            <input type="hidden" id="DuenioId" name="DuenioId" />
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Nombre de la mascota</label>
+            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+        </div>
+    }
+    else
+    {
+        <input type="hidden" id="DniDueño" name="DniDueño" value="@dniDueño" />
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+        </div>
+    }
     <div class="form-group mb-3">
         @Html.LabelFor(m => m.FechaNacimiento, new { @class = "form-label" })
         @Html.TextBoxFor(m => m.FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaNacimiento" })
@@ -52,20 +78,48 @@
     </div>
     <div class="form-group mb-3 text-center">
         @Html.Label("Foto", new { @class = "form-label" })
-        <input type="file" name="FotoFile" id="FotoFile" class="form-control" accept="image/*" onchange="previewFoto(this)" style="max-width:350px; margin:0 auto;" />
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <button type="button" id="btnAlternarFoto" class="btn btn-unificado btn-sm" onclick="alternarFoto()">
+                <i class="bi bi-camera"></i> Tomar foto
+            </button>
+            <input type="file" name="FotoFile" id="FotoFile" class="form-control" accept="image/*" style="max-width:350px;" />
+            <input type="file" id="FotoFileCamara" accept="image/*" capture="environment" style="display:none;max-width:350px;" />
+        </div>
         <div id="previewContainer" style="display:none; margin-top:12px; text-align:center;">
             <img id="previewImg" src="" alt="Previsualización" style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" />
             <br />
             <button type="button" class="btn btn-unificado btn-sm mt-2" onclick="limpiarFoto()">Quitar foto</button>
         </div>
     </div>
-    <div class="form-group mt-3">
+    <div class="form-group mt-3 text-center">
         <input type="submit" value="Guardar" class="btn btn-unificado" />
         @Html.ActionLink("Volver", "Index", null, new { @class = "btn btn-secondary ms-2" })
     </div>
 }
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    var esAdminOVet = @(esAdminOVet.ToString().ToLower());
+    var maxMb = 5; // Cambia a 7 si quieres 7 MB
+
+    // Alternar entre tomar y subir foto
+    function alternarFoto() {
+        var btn = document.getElementById('btnAlternarFoto');
+        var fileInput = document.getElementById('FotoFile');
+        var fileCamara = document.getElementById('FotoFileCamara');
+        if (fileInput.style.display !== "none") {
+            fileInput.style.display = "none";
+            fileCamara.style.display = "block";
+            btn.innerHTML = '<i class="bi bi-upload"></i> Subir foto';
+        } else {
+            fileInput.style.display = "block";
+            fileCamara.style.display = "none";
+            btn.innerHTML = '<i class="bi bi-camera"></i> Tomar foto';
+        }
+    }
+    document.getElementById('FotoFile').onchange = function() { previewFoto(this); };
+    document.getElementById('FotoFileCamara').onchange = function() { previewFoto(this); };
+
     // Razas por especie
     const razasPerro = [
         "Schnauzer", "Bulldog", "Shih Tzu", "Labrador", "Pug", "Pitbull", "Chihuahua", "Pastor Alemán", "Dogo", "Mestizo", "Otro"
@@ -93,7 +147,6 @@
         }
     }
 
-    // Mostrar input de "Otra Raza"
     function toggleOtraRaza(sel) {
         var otra = document.getElementById('OtraRaza');
         if (sel.value === "Otro") {
@@ -104,11 +157,23 @@
         }
     }
 
-    // Previsualización de foto
+    // Previsualización de foto y validación de tamaño
     function previewFoto(input) {
         var previewContainer = document.getElementById('previewContainer');
         var previewImg = document.getElementById('previewImg');
         if (input.files && input.files[0]) {
+            if (input.files[0].size > maxMb * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Archivo demasiado grande',
+                    text: `El archivo supera el límite de ${maxMb} MB.`,
+                    showConfirmButton: true
+                });
+                input.value = "";
+                previewContainer.style.display = "none";
+                previewImg.src = "";
+                return;
+            }
             var reader = new FileReader();
             reader.onload = function (e) {
                 previewImg.src = e.target.result;
@@ -122,15 +187,16 @@
     }
     function limpiarFoto() {
         var fileInput = document.getElementById('FotoFile');
+        var fileCamara = document.getElementById('FotoFileCamara');
         var previewContainer = document.getElementById('previewContainer');
         var previewImg = document.getElementById('previewImg');
         fileInput.value = "";
+        fileCamara.value = "";
         previewContainer.style.display = "none";
         previewImg.src = "";
     }
 
-    // Validación JS
-    document.querySelector('form').onsubmit = function (e) {
+    document.getElementById('mascotaForm').onsubmit = function (e) {
         var nombre = document.getElementById('Nombre').value.trim();
         var especie = document.getElementById('Especie').value;
         var raza = document.getElementById('Raza').value;
@@ -175,5 +241,36 @@
             e.preventDefault();
             return false;
         }
+        if (esAdminOVet) {
+            var duenioId = document.getElementById('DuenioId').value;
+            if (!duenioId) {
+                errorMsg.innerText = "Debe ingresar un DNI válido de dueño.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        }
     };
+
+    function buscarDuenoPorDni() {
+        var dni = document.getElementById('DniDueño').value.trim();
+        var nombreDueño = document.getElementById('NombreDueño');
+        var duenioId = document.getElementById('DuenioId');
+        if (dni.length < 8) {
+            nombreDueño.value = "";
+            duenioId.value = "";
+            return;
+        }
+        fetch('/Duenios/BuscarPorDni?dni=' + encodeURIComponent(dni))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.Id) {
+                    nombreDueño.value = data.Nombres + " " + data.Apellidos;
+                    duenioId.value = data.Id;
+                } else {
+                    nombreDueño.value = "No encontrado";
+                    duenioId.value = "";
+                }
+            });
+    }
 </script>

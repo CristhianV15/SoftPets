@@ -1,0 +1,297 @@
+﻿@model SoftPets.Models.Mascota
+@{
+    int? rolId = Session["RolId"] as int?;
+    bool esAdminOVet = rolId == 1 || rolId == 3;
+    ViewBag.Title = "Editar Mascota";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int maxMb = 5; // Cambia a 7 si quieres 7 MB
+    string fotoActual = Model.Foto;
+}
+
+<h2 class="text-center mb-4">@ViewBag.Title</h2>
+
+@using (Html.BeginForm("Edit", "Mascotas", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", id = "mascotaForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.Foto) <!-- Para mantener la foto actual si no se sube una nueva -->
+    <div id="errorMsg" class="error-message"></div>
+
+    if (esAdminOVet)
+    {
+        <div class="form-group mb-3">
+            <label class="form-label">DNI del Dueño</label>
+            <input type="text" id="DniDueño" name="DniDueño" class="form-control" maxlength="8" autocomplete="off" value="@ViewBag.DniDueño" readonly style="background:#e9ecef;" />
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Nombre del Dueño</label>
+            <input type="text" id="NombreDueño" class="form-control" readonly style="background:#e9ecef;" value="@ViewBag.NombreDueño" />
+            <input type="hidden" id="DuenioId" name="DuenioId" value="@Model.DuenioId" />
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label">Nombre de la mascota</label>
+            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+        </div>
+    }
+    else
+    {
+        <input type="hidden" id="DniDueño" name="DniDueño" value="@ViewBag.DniDueño" />
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+        </div>
+    }
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.FechaNacimiento, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaNacimiento" })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Especie, new { @class = "form-label" })
+        <select name="Especie" id="Especie" class="form-control" onchange="cargarRazasPorEspecie()">
+            <option value="">Seleccione especie</option>
+            <option value="Canino" @(Model.Especie == "Canino" ? "selected" : "")>Perro</option>
+            <option value="Felino" @(Model.Especie == "Felino" ? "selected" : "")>Gato</option>
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        @Html.Label("Raza", new { @class = "form-label" })
+        <select name="Raza" id="Raza" class="form-control" onchange="toggleOtraRaza(this)">
+            <option value="">Seleccione raza</option>
+        </select>
+        <input type="text" name="OtraRaza" id="OtraRaza" class="form-control mt-2" placeholder="Ingrese la raza" style="display:none;" maxlength="100" />
+    </div>
+    <div class="form-group mb-3">
+        @Html.Label("Sexo", new { @class = "form-label" })
+        <select name="Sexo" id="Sexo" class="form-control">
+            <option value="">Seleccione sexo</option>
+            <option value="Macho" @(Model.Sexo == "Macho" ? "selected" : "")>Macho</option>
+            <option value="Hembra" @(Model.Sexo == "Hembra" ? "selected" : "")>Hembra</option>
+        </select>
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Color, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Color, new { @class = "form-control", maxlength = 30 })
+    </div>
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Renian, new { @class = "form-label" })
+        @Html.TextBoxFor(m => m.Renian, new { @class = "form-control", maxlength = 50 })
+        <span class="text-muted" style="font-size:0.95em;">(Opcional)</span>
+    </div>
+    <div class="form-group mb-3 text-center">
+        @Html.Label("Foto", new { @class = "form-label" })
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <button type="button" id="btnAlternarFoto" class="btn btn-unificado btn-sm" onclick="alternarFoto()">
+                <i class="bi bi-camera"></i> Tomar foto
+            </button>
+            <input type="file" name="FotoFile" id="FotoFile" class="form-control" accept="image/*" style="max-width:350px;" />
+            <input type="file" id="FotoFileCamara" accept="image/*" capture="environment" style="display:none;max-width:350px;" />
+        </div>
+        <div id="previewContainer" style="display:none; margin-top:12px; text-align:center;">
+            <img id="previewImg" src="" alt="Previsualización" style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" />
+            <br />
+            <button type="button" class="btn btn-unificado btn-sm mt-2" onclick="limpiarFoto()">Quitar foto</button>
+        </div>
+        @if (!string.IsNullOrEmpty(fotoActual))
+        {
+            <div id="previewActualContainer" style="margin-top:12px;text-align:center;">
+                <label class="form-label">Foto actual:</label>
+                <img src="@fotoActual" alt="Foto actual" style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 2px 12px rgba(44,62,80,0.12);" />
+            </div>
+        }
+    </div>
+    <div class="form-group mt-3 text-center">
+        <input type="submit" value="Guardar" class="btn btn-unificado" />
+        @Html.ActionLink("Volver", "Index", null, new { @class = "btn btn-secondary ms-2" })
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    var esAdminOVet = @(esAdminOVet.ToString().ToLower());
+    var maxMb = 5; // Cambia a 7 si quieres 7 MB
+
+    // Alternar entre tomar y subir foto
+    function alternarFoto() {
+        var btn = document.getElementById('btnAlternarFoto');
+        var fileInput = document.getElementById('FotoFile');
+        var fileCamara = document.getElementById('FotoFileCamara');
+        if (fileInput.style.display !== "none") {
+            fileInput.style.display = "none";
+            fileCamara.style.display = "block";
+            btn.innerHTML = '<i class="bi bi-upload"></i> Subir foto';
+        } else {
+            fileInput.style.display = "block";
+            fileCamara.style.display = "none";
+            btn.innerHTML = '<i class="bi bi-camera"></i> Tomar foto';
+        }
+    }
+    document.getElementById('FotoFile').onchange = function() { previewFoto(this); };
+    document.getElementById('FotoFileCamara').onchange = function() { previewFoto(this); };
+
+    // Razas por especie
+    const razasPerro = [
+        "Schnauzer", "Bulldog", "Shih Tzu", "Labrador", "Pug", "Pitbull", "Chihuahua", "Pastor Alemán", "Dogo", "Mestizo", "Otro"
+    ];
+    const razasGato = [
+        "Persa", "Siames", "Mestizo", "Otro"
+    ];
+
+    function cargarRazasPorEspecie() {
+        var especie = document.getElementById('Especie').value;
+        var razaSelect = document.getElementById('Raza');
+        razaSelect.innerHTML = '<option value="">Seleccione raza</option>';
+        razaSelect.disabled = !especie;
+        document.getElementById('OtraRaza').style.display = "none";
+        document.getElementById('OtraRaza').value = "";
+
+        if (especie === "Canino") {
+            razasPerro.forEach(function (r) {
+                razaSelect.innerHTML += `<option value="${r}"${r === '@Model.Raza' ? ' selected' : ''}>${r}</option>`;
+            });
+        } else if (especie === "Felino") {
+            razasGato.forEach(function (r) {
+                razaSelect.innerHTML += `<option value="${r}"${r === '@Model.Raza' ? ' selected' : ''}>${r}</option>`;
+            });
+        }
+    }
+
+    function toggleOtraRaza(sel) {
+        var otra = document.getElementById('OtraRaza');
+        if (sel.value === "Otro") {
+            otra.style.display = "block";
+        } else {
+            otra.style.display = "none";
+            otra.value = "";
+        }
+    }
+
+    // Previsualización de foto y validación de tamaño
+    function previewFoto(input) {
+        var previewContainer = document.getElementById('previewContainer');
+        var previewImg = document.getElementById('previewImg');
+        if (input.files && input.files[0]) {
+            if (input.files[0].size > maxMb * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Archivo demasiado grande',
+                    text: `El archivo supera el límite de ${maxMb} MB.`,
+                    showConfirmButton: true
+                });
+                input.value = "";
+                previewContainer.style.display = "none";
+                previewImg.src = "";
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = "block";
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            previewContainer.style.display = "none";
+            previewImg.src = "";
+        }
+    }
+    function limpiarFoto() {
+        var fileInput = document.getElementById('FotoFile');
+        var fileCamara = document.getElementById('FotoFileCamara');
+        var previewContainer = document.getElementById('previewContainer');
+        var previewImg = document.getElementById('previewImg');
+        fileInput.value = "";
+        fileCamara.value = "";
+        previewContainer.style.display = "none";
+        previewImg.src = "";
+    }
+
+    document.getElementById('mascotaForm').onsubmit = function (e) {
+        var nombre = document.getElementById('Nombre').value.trim();
+        var especie = document.getElementById('Especie').value;
+        var raza = document.getElementById('Raza').value;
+        var sexo = document.getElementById('Sexo').value;
+        var fechaNac = document.getElementById('FechaNacimiento').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!nombre) {
+            errorMsg.innerText = "El nombre de la mascota es obligatorio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!fechaNac) {
+            errorMsg.innerText = "Debe seleccionar la fecha de nacimiento.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!especie) {
+            errorMsg.innerText = "Debe seleccionar la especie.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!raza && document.getElementById('OtraRaza').style.display === "none") {
+            errorMsg.innerText = "Debe seleccionar la raza.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (raza === "Otro" && !document.getElementById('OtraRaza').value.trim()) {
+            errorMsg.innerText = "Debe ingresar la raza.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!sexo) {
+            errorMsg.innerText = "Debe seleccionar el sexo.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (esAdminOVet) {
+            var duenioId = document.getElementById('DuenioId').value;
+            if (!duenioId) {
+                errorMsg.innerText = "Debe ingresar un DNI válido de dueño.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        }
+    };
+
+    function buscarDuenoPorDni() {
+        var dni = document.getElementById('DniDueño').value.trim();
+        var nombreDueño = document.getElementById('NombreDueño');
+        var duenioId = document.getElementById('DuenioId');
+        if (dni.length < 8) {
+            nombreDueño.value = "";
+            duenioId.value = "";
+            return;
+        }
+        fetch('/Duenios/BuscarPorDni?dni=' + encodeURIComponent(dni))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.Id) {
+                    nombreDueño.value = data.Nombres + " " + data.Apellidos;
+                    duenioId.value = data.Id;
+                } else {
+                    nombreDueño.value = "No encontrado";
+                    duenioId.value = "";
+                }
+            });
+    }
+
+    // Al cargar la página, si hay especie y raza seleccionadas, carga las opciones y selecciona la actual
+    window.onload = function() {
+        var especie = document.getElementById('Especie').value;
+        var raza = "@Model.Raza";
+        if (especie && raza) {
+            cargarRazasPorEspecie();
+            setTimeout(function() {
+                document.getElementById('Raza').value = raza;
+                toggleOtraRaza(document.getElementById('Raza'));
+            }, 100);
+        }
+    };
+</script>

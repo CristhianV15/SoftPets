@@ -127,8 +127,12 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\DetalleHistorialClinicoController.cs" />
+    <Compile Include="Controllers\DosisIndicacionHistorialClinicoController.cs" />
     <Compile Include="Controllers\DueniosController.cs" />
+    <Compile Include="Controllers\HistorialClinicoController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\IndicacionHistorialClinicoController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\MascotasController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
@@ -142,9 +146,13 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AppDbContext.cs" />
+    <Compile Include="Models\DetalleHistorialClinico.cs" />
+    <Compile Include="Models\DosisIndicacionHistorialClinico.cs" />
+    <Compile Include="Models\DosisIndicacionHistorialClinicoGeneralVM.cs" />
     <Compile Include="Models\Duenio.cs" />
     <Compile Include="Models\DuenioMisDatosViewModel.cs" />
     <Compile Include="Models\HistorialClinico.cs" />
+    <Compile Include="Models\IndicacionHistorialClinico.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\Mascota.cs" />
     <Compile Include="Models\QRPublico.cs" />
@@ -220,11 +228,33 @@
     <Content Include="Views\Mascotas\Create.cshtml" />
     <Content Include="Views\Mascotas\Details.cshtml" />
     <Content Include="Views\Tendencias\Grafico.cshtml" />
+    <Content Include="Views\Mascotas\Edit.cshtml" />
+    <Content Include="Views\HistorialClinico\Create.cshtml" />
+    <Content Include="Views\DetalleHistorialClinico\Index.cshtml" />
+    <Content Include="Views\IndicacionHistorialClinico\Index.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\Index.cshtml" />
+    <Content Include="Views\HistorialClinico\IndexEmergenciaPorDuenio.cshtml" />
+    <Content Include="Views\HistorialClinico\IndexConsultaPorDuenio.cshtml" />
+    <Content Include="Views\HistorialClinico\IndexEmergenciaPorMascota.cshtml" />
+    <Content Include="Views\HistorialClinico\IndexConsultaPorMascota.cshtml" />
+    <Content Include="Views\HistorialClinico\Edit.cshtml" />
+    <Content Include="Views\HistorialClinico\Details.cshtml" />
+    <Content Include="Views\DetalleHistorialClinico\Details.cshtml" />
+    <Content Include="Views\DetalleHistorialClinico\Edit.cshtml" />
+    <Content Include="Views\DetalleHistorialClinico\Create.cshtml" />
+    <Content Include="Views\IndicacionHistorialClinico\Create.cshtml" />
+    <Content Include="Views\IndicacionHistorialClinico\Edit.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\Create.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\Edit.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\IndexGeneral.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\Grafico.cshtml" />
+    <Content Include="Views\DosisIndicacionHistorialClinico\_TablaDosis.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\aaa\" />
     <Folder Include="Views\bbb\" />
+    <Folder Include="Views\ccc\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

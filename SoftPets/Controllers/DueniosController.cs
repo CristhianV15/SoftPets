@@ -487,5 +487,38 @@ namespace SoftPets.Controllers
             return View(model);
         }
 
+
+
+        [HttpGet]
+        public JsonResult BuscarPorDni(string dni)
+        {
+            Duenio duenio = null;
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT TOP 1 Id, Nombres, Apellidos FROM Duenios WHERE DNI=@dni", con))
+            {
+                cmd.Parameters.AddWithValue("@dni", dni);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        duenio = new Duenio
+                        {
+                            Id = (int)dr["Id"],
+                            Nombres = dr["Nombres"].ToString(),
+                            Apellidos = dr["Apellidos"].ToString()
+                        };
+                    }
+                }
+            }
+            if (duenio == null)
+            {
+                // Devuelve un mensaje si no se encuentra el dueño
+                return Json(new { Id = 0, Nombres = "DNI no registrado.", Apellidos = "" }, JsonRequestBehavior.AllowGet);
+            }
+            return Json(duenio, JsonRequestBehavior.AllowGet);
+        }
+
+
     }
     }

@@ -164,29 +164,33 @@ namespace SoftPets.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (!string.IsNullOrWhiteSpace(model.Renian))
+                int duenioId;
+                string dniDueño = "";
+
+                int? rolId = Session["RolId"] as int?;
+                if (rolId == 1 || rolId == 3)
                 {
-                    using (var con = new SqlConnection(connectionString))
-                    using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Mascotas WHERE Renian = @Renian", con))
-                    {
-                        cmd.Parameters.AddWithValue("@Renian", model.Renian);
-                        con.Open();
-                        int count = (int)cmd.ExecuteScalar();
-                        if (count > 0)
-                        {
-                            ModelState.AddModelError("Renian", "El Renian ya está registrado para otra mascota.");
-                            return View(model);
-                        }
-                    }
+                    duenioId = model.DuenioId;
+                    dniDueño = Request["DniDueño"];
                 }
-                int duenioId = (int)Session["DuenioId"];
+                else
+                {
+                    duenioId = (int)Session["DuenioId"];
+                    dniDueño = Session["DniDueño"] as string ?? "";
+                }
+
                 string rutaFoto = null;
                 if (FotoFile != null && FotoFile.ContentLength > 0)
                 {
-                    var fileName = Guid.NewGuid() + System.IO.Path.GetExtension(FotoFile.FileName);
+                    var fileName = $"{dniDueño}_{model.Nombre}{System.IO.Path.GetExtension(FotoFile.FileName)}";
                     var path = Server.MapPath("~/FotosMascotas/" + fileName);
                     FotoFile.SaveAs(path);
                     rutaFoto = "/FotosMascotas/" + fileName;
+                }
+                else
+                {
+                    // Si no sube foto, usa la imagen por defecto
+                    rutaFoto = "/FotosMascotas/DefectoMascota.jpg";
                 }
 
                 using (var con = new SqlConnection(connectionString))
@@ -198,18 +202,18 @@ namespace SoftPets.Controllers
                     cmd.Parameters.AddWithValue("@Raza", model.Raza ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FechaNacimiento", model.FechaNacimiento ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Sexo", model.Sexo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Color", model.Color ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Color", string.IsNullOrWhiteSpace(model.Color) ? (object)DBNull.Value : model.Color);
                     cmd.Parameters.AddWithValue("@Renian", model.Renian ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Foto", rutaFoto ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Estado", '1');
                     con.Open();
                     cmd.ExecuteNonQuery();
                 }
+                TempData["SwalMascotaCreada"] = model.Nombre;
                 return RedirectToAction("Index");
             }
             return View(model);
         }
-
 
 
         // Editar
@@ -244,15 +248,58 @@ namespace SoftPets.Controllers
                 }
             }
             if (mascota == null) return HttpNotFound();
+
+            // Obtener DNI y nombre del dueño para mostrar en el edit
+            if (mascota.DuenioId > 0)
+            {
+                var info = ObtenerDniYNombreDueño(mascota.DuenioId);
+                ViewBag.DniDueño = info.Dni;
+                ViewBag.NombreDueño = info.NombreCompleto;
+            }
+            else
+            {
+                ViewBag.DniDueño = "";
+                ViewBag.NombreDueño = "";
+            }
+
             return View(mascota);
         }
-
+        private (string Dni, string NombreCompleto) ObtenerDniYNombreDueño(int duenioId)
+        {
+            string dni = "";
+            string nombreCompleto = "";
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT DNI, Nombres, Apellidos FROM Duenios WHERE Id=@id", con))
+            {
+                cmd.Parameters.AddWithValue("@id", duenioId);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        dni = dr["DNI"].ToString();
+                        nombreCompleto = dr["Nombres"].ToString() + " " + dr["Apellidos"].ToString();
+                    }
+                }
+            }
+            return (dni, nombreCompleto);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Mascota model)
+        public ActionResult Edit(Mascota model, HttpPostedFileBase FotoFile)
         {
             if (ModelState.IsValid)
             {
+                string rutaFoto = model.Foto; // Mantén la foto actual si no se sube una nueva
+
+                if (FotoFile != null && FotoFile.ContentLength > 0)
+                {
+                    var fileName = Guid.NewGuid() + System.IO.Path.GetExtension(FotoFile.FileName);
+                    var path = Server.MapPath("~/FotosMascotas/" + fileName);
+                    FotoFile.SaveAs(path);
+                    rutaFoto = "/FotosMascotas/" + fileName;
+                }
+
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand("UPDATE Mascotas SET Nombre=@Nombre, Especie=@Especie, Raza=@Raza, FechaNacimiento=@FechaNacimiento, Sexo=@Sexo, Color=@Color, Renian=@Renian, Foto=@Foto WHERE Id=@Id", con))
                 {
@@ -262,15 +309,20 @@ namespace SoftPets.Controllers
                     cmd.Parameters.AddWithValue("@Raza", model.Raza ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@FechaNacimiento", model.FechaNacimiento ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Sexo", model.Sexo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Color", model.Color ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Renian", model.Renian ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Foto", model.Foto ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Color", string.IsNullOrWhiteSpace(model.Color) ? (object)DBNull.Value : model.Color);
+                    cmd.Parameters.AddWithValue("@Renian", string.IsNullOrWhiteSpace(model.Renian) ? (object)DBNull.Value : model.Renian);
+                    cmd.Parameters.AddWithValue("@Foto", string.IsNullOrWhiteSpace(rutaFoto) ? (object)DBNull.Value : rutaFoto);
                     con.Open();
                     cmd.ExecuteNonQuery();
                 }
+                TempData["SwalMascotaEditada"] = model.Nombre;
+
                 return RedirectToAction("Index");
             }
             return View(model);
         }
+
+
+
     }
 }

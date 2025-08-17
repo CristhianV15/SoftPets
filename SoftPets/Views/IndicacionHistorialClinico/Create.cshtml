@@ -1,0 +1,66 @@
+﻿@model SoftPets.Models.IndicacionHistorialClinico
+@{
+    ViewBag.Title = "Registrar Indicación";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int detalleHistorialClinicoId = ViewBag.DetalleHistorialClinicoId;
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Registrar Indicación</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.DetalleHistorialClinicoId, new { Value = detalleHistorialClinicoId })
+                @Html.HiddenFor(m => m.Estado, new { Value = "Pendiente" })
+                <div id="errorMsg" class="error-message"></div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Medicamento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Medicamento, new { @class = "form-control", maxlength = 100, id = "Medicamento" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Indicacion, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Indicacion, new { @class = "form-control", maxlength = 200, id = "Indicacion" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Registrar" class="btn btn-unificado" />
+                    @Html.ActionLink("Volver", "Index", new { detalleHistorialClinicoId = detalleHistorialClinicoId }, new { @class = "btn btn-secondary ms-2" })
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelector('form').onsubmit = function (e) {
+            var medicamento = document.getElementById('Medicamento').value;
+            var indicacion = document.getElementById('Indicacion').value;
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+            if (!medicamento) {
+                errorMsg.innerText = "Debe ingresar el medicamento.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!indicacion) {
+                errorMsg.innerText = "Debe ingresar la indicación.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        };
+    </script>
+}

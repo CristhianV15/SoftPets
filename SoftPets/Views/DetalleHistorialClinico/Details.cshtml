@@ -1,0 +1,25 @@
+﻿@model SoftPets.Models.DetalleHistorialClinico
+@{
+    ViewBag.Title = "Detalles del Detalle Clínico";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int historialClinicoId = Model.HistorialClinicoId;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Detalles del Detalle Clínico</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-5">Fecha Consulta</dt>
+                <dd class="col-sm-7">@Model.FechaConsulta.ToString("dd/MM/yyyy")</dd>
+                <dt class="col-sm-5">Recomendaciones</dt>
+                <dd class="col-sm-7">@Model.Recomendaciones</dd>
+                <dt class="col-sm-5">Fecha Futura Consulta</dt>
+                <dd class="col-sm-7">@Model.FechaFuturaConsulta?.ToString("dd/MM/yyyy")</dd>
+            </dl>
+            <div class="mt-3">
+                @Html.ActionLink("Volver", "Index", new { historialClinicoId = historialClinicoId }, new { @class = "btn btn-secondary" })
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,84 @@
+﻿@model SoftPets.Models.HistorialClinico
+@{
+    ViewBag.Title = "Editar Historial Clínico";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int? mascotaId = ViewBag.MascotaId as int?;
+    string tipo = ViewBag.Tipo as string ?? Model.Tipo;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Editar @tipo @(ViewBag.NombreMascota != null ? "de " + ViewBag.NombreMascota : "")</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.MascotaId)
+                @Html.HiddenFor(m => m.DuenioId)
+                @Html.HiddenFor(m => m.Tipo)
+
+                <div id="errorMsg" class="error-message"></div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaInicioTratamiento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaInicioTratamiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaInicioTratamiento" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaPosibleFinTratamiento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaPosibleFinTratamiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaPosibleFinTratamiento" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaFinTratamiento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaFinTratamiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaFinTratamiento" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Motivo, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Motivo, new { @class = "form-control", maxlength = 100, id = "Motivo" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Guardar Cambios" class="btn btn-unificado" />
+                    @if (mascotaId != null)
+                    {
+                        @Html.ActionLink("Volver", tipo == "Emergencia" ? "IndexEmergenciaPorMascota" : "IndexConsultaPorMascota", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
+                    }
+                    else
+                    {
+                        @Html.ActionLink("Volver", tipo == "Emergencia" ? "IndexEmergenciaPorDuenio" : "IndexConsultaPorDuenio", null, new { @class = "btn btn-secondary ms-2" })
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.querySelector('form').onsubmit = function (e) {
+        var inicio = document.getElementById('FechaInicioTratamiento').value;
+        var posibleFin = document.getElementById('FechaPosibleFinTratamiento').value;
+        var motivo = document.getElementById('Motivo').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!inicio) {
+            errorMsg.innerText = "Debe ingresar la fecha de inicio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!posibleFin) {
+            errorMsg.innerText = "Debe ingresar la fecha posible de fin.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!motivo) {
+            errorMsg.innerText = "Debe ingresar el motivo.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+    </script>
+}

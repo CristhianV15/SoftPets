@@ -1,0 +1,113 @@
+﻿@model IEnumerable<SoftPets.Models.HistorialClinico>
+@{
+    ViewBag.Title = "Historial Consulta - Mascota";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int mascotaId = ViewBag.MascotaId;
+    string nombreMascota = ViewBag.NombreMascota;
+}
+
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Historial de Consultas de @nombreMascota</h2>
+        <p class="text-center">
+            @Html.ActionLink("Registrar Consulta", "Create", new { mascotaId = mascotaId, tipo = "Consulta" }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+        </p>
+        <table class="table table-custom">
+            <tr>
+                <th>Motivo</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Posible Fin</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Motivo</td>
+                    <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
+                    <td>@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <button type="button" class="btn btn-unificado btn-sm" title="Detalles"
+                                    onclick="mostrarDetallesHistorialClinico(
+                    '@item.NombreMascota',
+                    '@item.NombreDuenio',
+                    '@item.Tipo',
+                    '@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")',
+                    '@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")',
+                    '@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")',
+                    '@item.Motivo'
+                )">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </div>
+                        <div class="acciones-btn-group">
+                            <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Detalles Clínicos">
+                                <i class="bi bi-clipboard2-pulse"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="detallesHistorialClinicoModal" tabindex="-1" aria-labelledby="detallesHistorialClinicoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detallesHistorialClinicoModalLabel">Detalles de Historial Clínico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="detallesHistorialClinicoBody">
+                <!-- Aquí se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if (TempData["SwalMascotaEditada"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'success',
+            title: '¡Operación exitosa!',
+            text: '@Html.Raw(TempData["SwalMascotaEditada"].ToString())',
+            showConfirmButton: false,
+            timer: 1800
+            });
+        </text>
+    }
+    @if (TempData["SwalError"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'error',
+            title: '¡Error!',
+            text: '@Html.Raw(TempData["SwalError"].ToString())',
+            showConfirmButton: true
+            });
+        </text>
+    }
+}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function mostrarDetallesHistorialClinico(nombreMascota, nombreDuenio, tipo, fechaInicio, fechaPosibleFin, fechaFin, motivo) {
+        var html = '';
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Mascota:</div><div class="col-7 modal-details-value">${nombreMascota}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Dueño:</div><div class="col-7 modal-details-value">${nombreDuenio}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Tipo:</div><div class="col-7 modal-details-value">${tipo}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Inicio:</div><div class="col-7 modal-details-value">${fechaInicio}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Posible Fin:</div><div class="col-7 modal-details-value">${fechaPosibleFin}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Fin:</div><div class="col-7 modal-details-value">${fechaFin}</div></div>`;
+        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Motivo:</div><div class="col-7 modal-details-value">${motivo}</div></div>`;
+        document.getElementById('detallesHistorialClinicoBody').innerHTML = html;
+        var modal = new bootstrap.Modal(document.getElementById('detallesHistorialClinicoModal'));
+        modal.show();
+    }
+</script>

@@ -40,15 +40,17 @@ namespace SoftPets.Filters
 
                 // Validar que tenga al menos una mascota
                 bool tieneMascota = false;
-                using (var con = new SqlConnection(connectionString))
-                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Mascotas WHERE DuenioId=@duenioId AND Estado='1'", con))
+                if (duenioId != null)
                 {
-                    cmd.Parameters.AddWithValue("@duenioId", usuarioId);
-                    con.Open();
-                    int count = (int)cmd.ExecuteScalar();
-                    tieneMascota = count > 0;
+                    using (var con = new SqlConnection(connectionString))
+                    using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Mascotas WHERE DuenioId=@duenioId AND Estado='1'", con))
+                    {
+                        cmd.Parameters.AddWithValue("@duenioId", duenioId);
+                        con.Open();
+                        int count = (int)cmd.ExecuteScalar();
+                        tieneMascota = count > 0;
+                    }
                 }
-                // Solo restringe acceso a otros controladores si no está en MascotasController o en CompletarDatos
                 var controllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
                 var actionName = filterContext.ActionDescriptor.ActionName;
                 if (!tieneMascota && controllerName != "Mascotas" && actionName != "CompletarDatos")

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 
 namespace SoftPets.Models
 {
@@ -13,35 +11,51 @@ namespace SoftPets.Models
         public int Id { get; set; }
 
         [Required]
+        [Display(Name = "Fecha de Inicio de Tratamiento")]
+        public DateTime FechaInicioTratamiento { get; set; }
+
+        [Display(Name = "Fecha de Fin de Tratamiento")]
+        public DateTime? FechaFinTratamiento { get; set; }
+
+        [Required]
+        [Display(Name = "Fecha Posible de Fin de Tratamiento")]
+        public DateTime FechaPosibleFinTratamiento { get; set; }
+
+        [Required]
+        [Display(Name = "Mascota")]
         public int MascotaId { get; set; }
 
-        public DateTime? FechaConsulta { get; set; }
+      
+        [NotMapped]
+        [Display(Name = "Nombre del dueño")]
+        public string NombreDuenio { get; set; }
+        
+        
+        [Display(Name = "Nombre de mascota")]
+        [NotMapped]
+        public string NombreMascota { get; set; }
 
         [Required]
-        public int VeterinarioId { get; set; } // FK a Usuario.Id (veterinario)
-
-        [StringLength(255)]
-        public string Diagnostico { get; set; }
-
-        [StringLength(255)]
-        public string Tratamiento { get; set; }
-
-        [StringLength(255)]
-        public string Observaciones { get; set; }
+        [StringLength(100)]
+        [Display(Name = "Motivo")]
+        public string Motivo { get; set; }
 
         [Required]
-        public char Estado { get; set; }
-
-        [Required]
-        public DateTime FechaCreacion { get; set; }
-
-        public DateTime? FechaActualizacion { get; set; }
+        [StringLength(15)]
+        [Display(Name = "Tipo")]
+        public string Tipo { get; set; }
 
         // Relaciones
         [ForeignKey("MascotaId")]
         public virtual Mascota Mascota { get; set; }
+        
 
-        [ForeignKey("VeterinarioId")]
-        public virtual Usuario Veterinario { get; set; }
+        //[Required]
+        [Display(Name = "Dueño")]
+        public int DuenioId { get; set; }
+
+        [ForeignKey("DuenioId")]
+        public virtual Duenio Duenio { get; set; }
+        public virtual ICollection<DetalleHistorialClinico> DetallesHistorialClinico { get; set; }
     }
 }

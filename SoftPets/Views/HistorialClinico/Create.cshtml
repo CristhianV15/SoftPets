@@ -1,0 +1,149 @@
+﻿
+@model SoftPets.Models.HistorialClinico
+@{
+    int? mascotaId = ViewBag.MascotaId as int?;
+    int? duenioId = ViewBag.DuenioId as int?;
+    string tipo = ViewBag.Tipo as string ?? "Consulta";
+    var mascotas = ViewBag.Mascotas as List<SelectListItem>;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Registrar @tipo @(mascotaId == null ? "" : "de " + ViewBag.NombreMascota)</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <div id="errorMsg" class="error-message"></div>
+
+                @Html.HiddenFor(m => m.DuenioId, new { Value = duenioId })
+                if (mascotaId != null)
+                {
+                    @Html.HiddenFor(m => m.MascotaId, new { Value = mascotaId })
+                }
+                else
+                {
+                    <div class="form-group mb-3">
+                        @Html.Label("Mascota", htmlAttributes: new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.MascotaId, mascotas, "Seleccionar mascota...", new { @class = "form-control", id = "MascotaId" })
+                    </div>
+                }
+                @Html.HiddenFor(m => m.Tipo, new { Value = tipo })
+
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaInicioTratamiento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaInicioTratamiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaInicioTratamiento", value = DateTime.Now.ToString("yyyy-MM-dd") })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaPosibleFinTratamiento, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaPosibleFinTratamiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaPosibleFinTratamiento" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Motivo, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Motivo, new { @class = "form-control", maxlength = 100, id = "Motivo" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Registrar" class="btn btn-unificado" />
+                    @if (mascotaId != null)
+                    {
+                        @Html.ActionLink("Volver", tipo == "Emergencia" ? "IndexEmergenciaPorMascota" : "IndexConsultaPorMascota", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
+                    }
+                    else
+                    {
+                        @Html.ActionLink("Volver", tipo == "Emergencia" ? "IndexEmergenciaPorDuenio" : "IndexConsultaPorDuenio", null, new { @class = "btn btn-secondary ms-2" })
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // Buscar dueño por DNI (AJAX)
+    function buscarDuenoPorDni() {
+        var dni = document.getElementById('DniDueño').value.trim();
+        var nombreDueño = document.getElementById('NombreDueño');
+        var duenioId = document.getElementById('DuenioId');
+        if (dni.length < 8) {
+            nombreDueño.value = "";
+            duenioId.value = "";
+            return;
+        }
+        fetch('/Duenios/BuscarPorDni?dni=' + encodeURIComponent(dni))
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.Id) {
+                    nombreDueño.value = data.Nombres + " " + data.Apellidos;
+                    duenioId.value = data.Id;
+                } else {
+                    nombreDueño.value = "No encontrado";
+                    duenioId.value = "";
+                }
+            });
+    }
+
+    // Fecha posible fin a 7 días después de inicio
+    window.onload = function () {
+        var inicio = document.getElementById('FechaInicioTratamiento');
+        var posibleFin = document.getElementById('FechaPosibleFinTratamiento');
+        if (inicio && posibleFin) {
+            var hoy = inicio.value ? new Date(inicio.value) : new Date();
+            var sieteDias = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 7);
+            posibleFin.value = sieteDias.toISOString().split('T')[0];
+        }
+    };
+    document.getElementById('FechaInicioTratamiento').addEventListener('change', function () {
+        var inicio = document.getElementById('FechaInicioTratamiento').value;
+        var posibleFin = document.getElementById('FechaPosibleFinTratamiento');
+        if (inicio) {
+            var fechaInicio = new Date(inicio);
+            var sieteDias = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate() + 7);
+            posibleFin.value = sieteDias.toISOString().split('T')[0];
+        }
+    });
+
+    // Validaciones del formulario
+    document.querySelector('form').onsubmit = function (e) {
+        var mascotaId = document.getElementById('MascotaId') ? document.getElementById('MascotaId').value : '@mascotaId';
+        var duenioId = document.getElementById('DuenioId') ? document.getElementById('DuenioId').value : '@duenioId';
+        var inicio = document.getElementById('FechaInicioTratamiento').value;
+        var posibleFin = document.getElementById('FechaPosibleFinTratamiento').value;
+        var motivo = document.getElementById('Motivo').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!duenioId || duenioId === "0") {
+            errorMsg.innerText = "Debe seleccionar un dueño válido.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!mascotaId || mascotaId === "0") {
+            errorMsg.innerText = "Debe seleccionar una mascota.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!inicio) {
+            errorMsg.innerText = "Debe ingresar la fecha de inicio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!posibleFin) {
+            errorMsg.innerText = "Debe ingresar la fecha posible de fin.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!motivo) {
+            errorMsg.innerText = "Debe ingresar el motivo.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+    </script>
+}

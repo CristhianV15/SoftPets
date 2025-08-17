@@ -1,0 +1,122 @@
+﻿@model IEnumerable<SoftPets.Models.DosisIndicacionHistorialClinicoGeneralVM>
+@{
+    ViewBag.Title = "Gráfico de Dosis Programadas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content-bg">
+    <div class="tabla-container" style="max-width:1100px;">
+        <h2 class="text-center mb-4">Gráfico de Dosis Programadas</h2>
+        <div class="d-flex flex-wrap justify-content-center mb-3 gap-2">
+            <input type="text" id="buscadorMotivo" class="form-control" style="max-width:220px;" placeholder="Buscar por motivo..." onkeyup="filtrarGraficoPorMotivo()" />
+            <button class="btn btn-unificado btn-sm" onclick="filtrarGrafico('Pendiente')">Solo Pendientes</button>
+            <button class="btn btn-unificado btn-sm" onclick="filtrarGrafico('Realizada')">Solo Realizadas</button>
+            <button class="btn btn-secondary btn-sm" onclick="filtrarGrafico('')">Todas</button>
+        </div>
+        <canvas id="graficoDosis" style="max-width:100%;"></canvas>
+        <div class="text-center mt-4">
+            @Html.ActionLink("Volver", "IndexGeneral", null, new { @class = "btn btn-unificado" })
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var allData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.Select(x => new {
+            Fecha = x.FechaInicioDosis.ToString("dd/MM/yyyy"),
+            Estado = x.EstadoAlerta,
+            Medicamento = x.Medicamento,
+            Mascota = x.NombreMascota,
+            Motivo = x.Motivo
+        })
+    ));
+
+    var motivoFiltro = "";
+    var ultimoEstadoFiltro = '';
+
+    function filtrarGraficoPorMotivo() {
+        motivoFiltro = document.getElementById('buscadorMotivo').value.toLowerCase();
+        renderGrafico(ultimoEstadoFiltro);
+    }
+
+    function filtrarGrafico(estado) {
+        renderGrafico(estado);
+    }
+
+    function agruparPorFechaEstado(data, estadoFiltro, motivoFiltro) {
+        var agrupado = {};
+        data.forEach(function(x) {
+            if (estadoFiltro && x.Estado !== estadoFiltro) return;
+            if (motivoFiltro && x.Motivo.toLowerCase().indexOf(motivoFiltro) === -1) return;
+            if (!agrupado[x.Fecha]) agrupado[x.Fecha] = { Pendientes: 0, Realizadas: 0, MedsPendientes: [], MedsRealizadas: [] };
+            if (x.Estado === "Pendiente") {
+                agrupado[x.Fecha].Pendientes++;
+                agrupado[x.Fecha].MedsPendientes.push(x.Medicamento + " (" + x.Mascota + ")");
+            }
+            if (x.Estado === "Realizada") {
+                agrupado[x.Fecha].Realizadas++;
+                agrupado[x.Fecha].MedsRealizadas.push(x.Medicamento + " (" + x.Mascota + ")");
+            }
+        });
+        return agrupado;
+    }
+
+    var chart;
+    function renderGrafico(estadoFiltro) {
+        ultimoEstadoFiltro = estadoFiltro;
+        var agrupado = agruparPorFechaEstado(allData, estadoFiltro, motivoFiltro);
+        var fechas = Object.keys(agrupado);
+        var pendientes = fechas.map(f => agrupado[f].Pendientes);
+        var realizadas = fechas.map(f => agrupado[f].Realizadas);
+        var medsPendientes = fechas.map(f => agrupado[f].MedsPendientes.join(", "));
+        var medsRealizadas = fechas.map(f => agrupado[f].MedsRealizadas.join(", "));
+
+        var ctx = document.getElementById('graficoDosis').getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fechas,
+                datasets: [
+                    {
+                        label: 'Pendientes',
+                        data: pendientes,
+                        backgroundColor: '#38bdf8'
+                    },
+                    {
+                        label: 'Realizadas',
+                        data: realizadas,
+                        backgroundColor: '#fbbf24'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var idx = context.dataIndex;
+                                var label = context.dataset.label + ": " + context.parsed.y;
+                                if (context.dataset.label === "Pendientes" && medsPendientes[idx])
+                                    label += " | Medicamentos: " + medsPendientes[idx];
+                                if (context.dataset.label === "Realizadas" && medsRealizadas[idx])
+                                    label += " | Medicamentos: " + medsRealizadas[idx];
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Fecha de Dosis' } },
+                    y: { title: { display: true, text: 'Cantidad' }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Inicializa con todos
+    renderGrafico('');
+</script>

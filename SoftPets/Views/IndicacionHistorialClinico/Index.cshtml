@@ -1,0 +1,71 @@
+﻿@model IEnumerable<SoftPets.Models.IndicacionHistorialClinico>
+@{
+    ViewBag.Title = "Indicaciones del Detalle Clínico";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int? detalleHistorialClinicoId = ViewBag.DetalleHistorialClinicoId as int?;
+    if (detalleHistorialClinicoId == null)
+    {
+        <div class="alert alert-danger">No se pudo obtener el ID del Detalle Clínico.</div>
+        return;
+    }
+}
+
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Indicaciones del Detalle Clínico</h2>
+        <p class="text-center">
+            @Html.ActionLink("Registrar Indicación", "Create", new { detalleHistorialClinicoId = detalleHistorialClinicoId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+        </p>
+        <table class="table table-custom">
+            <tr>
+                <th>Medicamento</th>
+                <th>Indicación</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Medicamento</td>
+                    <td>@item.Indicacion</td>
+                    <td>@item.Estado</td>
+                    <td>
+                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a href="@Url.Action("Index", "DosisIndicacionHistorialClinico", new { IndicacionesHistorialesClinicosId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Dosis">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if (TempData["SwalMascotaEditada"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'success',
+            title: '¡Operación exitosa!',
+            text: '@Html.Raw(TempData["SwalMascotaEditada"].ToString())',
+            showConfirmButton: false,
+            timer: 1800
+            });
+        </text>
+    }
+    @if (TempData["SwalError"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'error',
+            title: '¡Error!',
+            text: '@Html.Raw(TempData["SwalError"].ToString())',
+            showConfirmButton: true
+            });
+        </text>
+    }
+}

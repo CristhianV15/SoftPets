@@ -1,0 +1,61 @@
+﻿@model SoftPets.Models.DetalleHistorialClinico
+@{
+    ViewBag.Title = "Registrar Detalle de Historial Clínico";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int historialClinicoId = ViewBag.HistorialClinicoId;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Registrar Detalle</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.HistorialClinicoId, new { Value = historialClinicoId })
+                <div id="errorMsg" class="error-message"></div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaConsulta, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaConsulta, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaConsulta", value = DateTime.Now.ToString("yyyy-MM-dd") })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Recomendaciones, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Recomendaciones, new { @class = "form-control", maxlength = 200, id = "Recomendaciones" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaFuturaConsulta, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaFuturaConsulta, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", id = "FechaFuturaConsulta" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Registrar" class="btn btn-unificado" />
+                    @Html.ActionLink("Volver", "Index", new { historialClinicoId = historialClinicoId }, new { @class = "btn btn-secondary ms-2" })
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.querySelector('form').onsubmit = function (e) {
+        var fecha = document.getElementById('FechaConsulta').value;
+        var recomendaciones = document.getElementById('Recomendaciones').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!fecha) {
+            errorMsg.innerText = "Debe ingresar la fecha de consulta.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!recomendaciones) {
+            errorMsg.innerText = "Debe ingresar las recomendaciones.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+    </script>
+}

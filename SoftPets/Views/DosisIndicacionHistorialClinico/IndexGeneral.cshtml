@@ -1,0 +1,95 @@
+﻿@model IEnumerable<SoftPets.Models.DosisIndicacionHistorialClinicoGeneralVM>
+@{
+    ViewBag.Title = "Mis Dosis Programadas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content-bg" style="max-width:100vw;">
+    <div class="tabla-container" style="overflow-x:auto; min-width:1100px;">
+        <h2 class="text-center mb-4">Mis Dosis Programadas</h2>
+        <form id="filtroForm" class="row mb-3 g-2 justify-content-center">
+            <div class="col-12 d-flex flex-wrap align-items-end justify-content-center gap-2">
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">-- Estado --</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Realizada">Realizada</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Motivo</label>
+                    <input type="text" name="motivo" class="form-control" placeholder="Motivo" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Mascota</label>
+                    <input type="text" name="mascota" class="form-control" placeholder="Mascota" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control" />
+                </div>
+                <div class="align-self-end">
+                    <button type="button" id="btnFiltrar" class="btn btn-unificado">Filtrar</button>
+                </div>
+                <div class="align-self-end">
+                    @Html.ActionLink("Ver Gráfico", "Grafico", null, new { @class = "btn btn-unificado btn-crear-nuevo ms-2" })
+                </div>
+            </div>
+        </form>
+        <div id="tablaDosis">
+            @Html.Partial("_TablaDosis", Model)
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function cargarTablaDosis() {
+    var data = $("#filtroForm").serialize();
+    $.get('@Url.Action("FiltrarAjax", "DosisIndicacionHistorialClinico")', data, function (html) {
+        $("#tablaDosis").html(html);
+    });
+}
+
+// Filtrar en tiempo real al cambiar cualquier campo
+$('#filtroForm input, #filtroForm select').on('change keyup', function () {
+    cargarTablaDosis();
+});
+// O solo al hacer click en "Filtrar"
+// $('#btnFiltrar').on('click', function () { cargarTablaDosis(); });
+
+$(document).ready(function () {
+    cargarTablaDosis();
+});
+    </script>
+    @if (TempData["SwalMascotaEditada"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'success',
+            title: '¡Operación exitosa!',
+            text: '@Html.Raw(TempData["SwalMascotaEditada"].ToString())',
+            showConfirmButton: false,
+            timer: 1800
+            });
+        </text>
+    }
+    @if (TempData["SwalError"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'error',
+            title: '¡Error!',
+            text: '@Html.Raw(TempData["SwalError"].ToString())',
+            showConfirmButton: true
+            });
+        </text>
+    }
+}

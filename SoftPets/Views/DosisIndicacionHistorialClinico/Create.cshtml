@@ -1,0 +1,92 @@
+﻿@model SoftPets.Models.DosisIndicacionHistorialClinico
+@{
+    ViewBag.Title = "Registrar Dosis";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int indicacionHistorialClinicoId = ViewBag.IndicacionesHistorialesClinicosId;
+}
+
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Registrar Dosis</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.IndicacionHistorialClinicoId, new { Value = indicacionHistorialClinicoId })
+                @Html.HiddenFor(m => m.EstadoAlerta, new { Value = "Pendiente" })
+                <div id="errorMsg" class="error-message"></div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Dosis, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Dosis, new { @class = "form-control", maxlength = 50, id = "Dosis", placeholder = "Ej: 1 tableta, 5 ml, etc." })
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Frecuencia</label>
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.IntervaloCantidad, new { @class = "form-control", type = "number", min = "1", id = "IntervaloCantidad", placeholder = "Cada..." })
+                        <select id="IntervaloTipo" name="IntervaloTipo" class="form-select" style="max-width:120px;">
+                            <option value="Hora">Hora(s)</option>
+                            <option value="Día">Día(s)</option>
+                            <option value="Semana">Semana(s)</option>
+                        </select>
+                        <span class="input-group-text">Ej: cada 8 horas</span>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.CantidadTotalDosis, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.CantidadTotalDosis, new { @class = "form-control", type = "number", min = "1", id = "CantidadTotalDosis", placeholder = "Total de dosis (opcional)" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaInicioDosis, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaInicioDosis, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", id = "FechaInicioDosis" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.FechaFinDosis, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.FechaFinDosis, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local", id = "FechaFinDosis" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Registrar" class="btn btn-unificado" />
+                    @Html.ActionLink("Volver", "Index", new { indicacionHistorialClinicoId = indicacionHistorialClinicoId }, new { @class = "btn btn-secondary ms-2" })
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.querySelector('form').onsubmit = function (e) {
+        var dosis = document.getElementById('Dosis').value;
+        var intervaloCantidad = document.getElementById('IntervaloCantidad').value;
+        var intervaloTipo = document.getElementById('IntervaloTipo').value;
+        var fechaInicio = document.getElementById('FechaInicioDosis').value;
+        var errorMsg = document.getElementById('errorMsg');
+        errorMsg.style.display = 'none';
+        errorMsg.innerText = '';
+        if (!dosis) {
+            errorMsg.innerText = "Debe ingresar la dosis.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!intervaloCantidad || intervaloCantidad < 1) {
+            errorMsg.innerText = "Debe ingresar la frecuencia (cantidad).";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!intervaloTipo) {
+            errorMsg.innerText = "Debe seleccionar el tipo de intervalo.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+        if (!fechaInicio) {
+            errorMsg.innerText = "Debe ingresar la fecha y hora de inicio.";
+            errorMsg.style.display = 'block';
+            e.preventDefault();
+            return false;
+        }
+    };
+    </script>
+}

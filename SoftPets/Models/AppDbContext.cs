@@ -77,10 +77,10 @@ namespace SoftPets.Models
                 .WithRequired(v => v.Veterinario)
                 .HasForeignKey(v => v.VeterinarioId);
 
-            modelBuilder.Entity<Usuario>()
-                .HasMany(u => u.HistorialesClinicosRealizados)
-                .WithRequired(h => h.Veterinario)
-                .HasForeignKey(h => h.VeterinarioId);
+            //modelBuilder.Entity<Usuario>()
+            //    .HasMany(u => u.HistorialesClinicosRealizados)
+            //    .WithRequired(h => h.Veterinario)
+            //    .HasForeignKey(h => h.VeterinarioId);
 
             base.OnModelCreating(modelBuilder);
         }

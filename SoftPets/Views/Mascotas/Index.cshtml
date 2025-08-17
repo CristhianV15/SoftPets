@@ -14,22 +14,19 @@
         <p class="text-center">
             @Html.ActionLink("Registrar Mascota", "Create", null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
-        <div class="mb-3 text-center">
+        <div class="mb-3 d-flex justify-content-center align-items-center flex-wrap gap-2">
+            <input type="text" id="filtroMascota" class="form-control" style="max-width:240px;" placeholder="Buscar por nombre de mascota..." />
             @if (rolId == 1 || rolId == 3)
             {
-                <input type="text" id="filtroDuenio" class="form-control" style="max-width:170px;display:inline-block;" placeholder="Buscar por dueño..." />
-            }
-            <input type="text" id="filtroMascota" class="form-control" style="max-width:240px;display:inline-block;margin-left:8px;" placeholder="Buscar por nombre de mascota..." />
-            @if (rolId == 1 || rolId == 3)
-            {
-                <select id="filtroSexo" class="form-control" style="max-width:130px;display:inline-block;margin-left:8px;">
+                <input type="text" id="filtroDuenio" class="form-control" style="max-width:170px;" placeholder="Buscar por dueño..." />
+                <select id="filtroSexo" class="form-control" style="max-width:130px;">
                     <option value="">Sexo</option>
                     @foreach (var s in sexos)
                     {
                         <option value="@s">@s</option>
                     }
                 </select>
-                <select id="filtroRaza" class="form-control" style="max-width:170px;display:inline-block;margin-left:8px;">
+                <select id="filtroRaza" class="form-control" style="max-width:170px;">
                     <option value="">Raza</option>
                     @foreach (var r in razas)
                     {
@@ -37,6 +34,9 @@
                     }
                 </select>
             }
+            <button type="button" id="btnLimpiarFiltros" class="btn btn-unificado btn-sm" title="Limpiar filtros" style="height:38px;">
+                <i class="bi bi-x-circle"></i>
+            </button>
         </div>
         <table class="table table-custom" id="tablaMascotas">
             <tr>
@@ -107,6 +107,12 @@
                             <a href="@Url.Action("Index", "Tendencias", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Tendencias">
                                 <i class="bi bi-bar-chart-line"></i>
                             </a>
+                            <a href="@Url.Action("IndexConsultaPorMascota", "HistorialClinico", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Historial Consulta">
+                                <i class="bi bi-journal-text"></i>
+                            </a>
+                            <a href="@Url.Action("IndexEmergenciaPorMascota", "HistorialClinico", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Historial Emergencia">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -144,6 +150,7 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -182,6 +189,15 @@
     if (filtroRaza) filtroRaza.addEventListener('change', filtrarMascotas);
     if (filtroDuenio) filtroDuenio.addEventListener('keyup', filtrarMascotas);
 
+    // Botón limpiar filtros
+    document.getElementById('btnLimpiarFiltros').onclick = function () {
+        if (filtroDuenio) filtroDuenio.value = '';
+        document.getElementById('filtroMascota').value = '';
+        if (filtroSexo) filtroSexo.selectedIndex = 0;
+        if (filtroRaza) filtroRaza.selectedIndex = 0;
+        filtrarMascotas();
+    };
+
     function filtrarMascotas() {
         var filtro = document.getElementById('filtroMascota').value.toLowerCase();
         var sexo = filtroSexo ? filtroSexo.value.toLowerCase() : '';
@@ -199,14 +215,42 @@
             var nombre = tds[idxNombre].innerText.toLowerCase();
             var razaTd = tds[idxRaza].innerText.toLowerCase();
             var sexoTd = tds[idxSexo].innerText.toLowerCase();
+            var sexoLimpio = sexoTd.replace(/[^a-zA-Z]/g, '').trim();
             var duenioTd = idxDuenio >= 0 ? tds[idxDuenio].innerText.toLowerCase().trim() : '';
 
             var mostrar = true;
             if (filtro && nombre.indexOf(filtro) === -1) mostrar = false;
-            if (sexo && sexoTd !== sexo) mostrar = false;
+            if (sexo && sexoLimpio !== sexo) mostrar = false;
             if (raza && razaTd !== raza) mostrar = false;
             if ((rolId == 1 || rolId == 3) && duenio && duenioTd.indexOf(duenio) === -1) mostrar = false;
             fila.style.display = mostrar ? '' : 'none';
         });
     }
+
+     @if (TempData["SwalMascotaCreada"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: '¡Mascota creada!',
+                text: 'La mascota "@Html.Raw(TempData["SwalMascotaCreada"].ToString())" fue creada correctamente.',
+                showConfirmButton: false,
+                timer: 1800
+            });
+            </text>
+        }
+@if (TempData["SwalMascotaEditada"] != null)
+{
+            <text>
+
+        Swal.fire({
+            icon: 'success',
+            title: '¡Mascota actualizada!',
+            text: 'La mascota "@Html.Raw(TempData["SwalMascotaEditada"].ToString())" fue actualizada correctamente.',
+            showConfirmButton: false,
+            timer: 1800
+        });
+            </text>
+}
+
 </script>

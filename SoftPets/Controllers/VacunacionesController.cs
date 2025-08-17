@@ -62,6 +62,15 @@ namespace SoftPets.Controllers
         {
             if (ModelState.IsValid)
             {
+                int? veterinarioId = Session["VeterinarioId"] as int?;
+                if (veterinarioId == null)
+                {
+                    ModelState.AddModelError("", "No se pudo identificar al veterinario.");
+                    ViewBag.MascotaId = model.MascotaId;
+                    ViewBag.Vacunas = ObtenerVacunas();
+                    return View(model);
+                }
+
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand("VacunacionesInsert", con))
                 {
@@ -69,7 +78,7 @@ namespace SoftPets.Controllers
                     cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
                     cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
                     cmd.Parameters.AddWithValue("@Fecha", model.Fecha ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@VeterinarioId", model.VeterinarioId);
+                    cmd.Parameters.AddWithValue("@VeterinarioId", veterinarioId.Value);
                     cmd.Parameters.AddWithValue("@Observaciones", model.Observaciones ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@Estado", '1');
                     con.Open();
