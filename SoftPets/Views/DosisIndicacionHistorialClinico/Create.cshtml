@@ -55,38 +55,92 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    document.querySelector('form').onsubmit = function (e) {
-        var dosis = document.getElementById('Dosis').value;
-        var intervaloCantidad = document.getElementById('IntervaloCantidad').value;
-        var intervaloTipo = document.getElementById('IntervaloTipo').value;
-        var fechaInicio = document.getElementById('FechaInicioDosis').value;
-        var errorMsg = document.getElementById('errorMsg');
-        errorMsg.style.display = 'none';
-        errorMsg.innerText = '';
-        if (!dosis) {
-            errorMsg.innerText = "Debe ingresar la dosis.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
+        // Función para calcular la fecha fin automáticamente
+        function calcularFechaFin() {
+            var fechaInicio = document.getElementById('FechaInicioDosis').value;
+            var intervaloCantidad = parseInt(document.getElementById('IntervaloCantidad').value);
+            var intervaloTipo = document.getElementById('IntervaloTipo').value;
+            var cantidadTotal = parseInt(document.getElementById('CantidadTotalDosis').value);
+
+            if (!fechaInicio || !intervaloCantidad || !intervaloTipo || !cantidadTotal || cantidadTotal < 1) {
+                return;
+            }
+
+            var fecha = new Date(fechaInicio);
+            var fechaFin = new Date(fecha);
+
+            if (intervaloTipo === "Hora") {
+                fechaFin.setHours(fecha.getHours() + intervaloCantidad * (cantidadTotal - 1));
+            } else if (intervaloTipo === "Día") {
+                fechaFin.setDate(fecha.getDate() + intervaloCantidad * (cantidadTotal - 1));
+            } else if (intervaloTipo === "Semana") {
+                fechaFin.setDate(fecha.getDate() + (intervaloCantidad * 7) * (cantidadTotal - 1));
+            }
+
+            // Formato yyyy-MM-ddTHH:mm
+            var yyyy = fechaFin.getFullYear();
+            var mm = String(fechaFin.getMonth() + 1).padStart(2, '0');
+            var dd = String(fechaFin.getDate()).padStart(2, '0');
+            var hh = String(fechaFin.getHours()).padStart(2, '0');
+            var min = String(fechaFin.getMinutes()).padStart(2, '0');
+            var fechaFinStr = yyyy + '-' + mm + '-' + dd + 'T' + hh + ':' + min;
+
+            document.getElementById('FechaFinDosis').value = fechaFinStr;
         }
-        if (!intervaloCantidad || intervaloCantidad < 1) {
-            errorMsg.innerText = "Debe ingresar la frecuencia (cantidad).";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!intervaloTipo) {
-            errorMsg.innerText = "Debe seleccionar el tipo de intervalo.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-        if (!fechaInicio) {
-            errorMsg.innerText = "Debe ingresar la fecha y hora de inicio.";
-            errorMsg.style.display = 'block';
-            e.preventDefault();
-            return false;
-        }
-    };
+
+        // Al cargar la página, pon la fecha de inicio por defecto a hoy (si está vacío)
+        window.onload = function () {
+            var fechaInicio = document.getElementById('FechaInicioDosis');
+            if (fechaInicio && !fechaInicio.value) {
+                var now = new Date();
+                var yyyy = now.getFullYear();
+                var mm = String(now.getMonth() + 1).padStart(2, '0');
+                var dd = String(now.getDate()).padStart(2, '0');
+                var hh = String(now.getHours()).padStart(2, '0');
+                var min = String(now.getMinutes()).padStart(2, '0');
+                fechaInicio.value = yyyy + '-' + mm + '-' + dd + 'T' + hh + ':' + min;
+            }
+            calcularFechaFin();
+        };
+
+        // Cuando cambie alguno de los campos relevantes, recalcula la fecha fin
+        document.getElementById('FechaInicioDosis').addEventListener('change', calcularFechaFin);
+        document.getElementById('IntervaloCantidad').addEventListener('input', calcularFechaFin);
+        document.getElementById('IntervaloTipo').addEventListener('change', calcularFechaFin);
+        document.getElementById('CantidadTotalDosis').addEventListener('input', calcularFechaFin);
+
+        document.querySelector('form').onsubmit = function (e) {
+            var dosis = document.getElementById('Dosis').value;
+            var intervaloCantidad = document.getElementById('IntervaloCantidad').value;
+            var intervaloTipo = document.getElementById('IntervaloTipo').value;
+            var fechaInicio = document.getElementById('FechaInicioDosis').value;
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+            if (!dosis) {
+                errorMsg.innerText = "Debe ingresar la dosis.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!intervaloCantidad || intervaloCantidad < 1) {
+                errorMsg.innerText = "Debe ingresar la frecuencia (cantidad).";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!intervaloTipo) {
+                errorMsg.innerText = "Debe seleccionar el tipo de intervalo.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!fechaInicio) {
+                errorMsg.innerText = "Debe ingresar la fecha y hora de inicio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+        };
     </script>
 }

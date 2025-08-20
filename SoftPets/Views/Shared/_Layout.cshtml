@@ -91,6 +91,18 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a class="nav-link" href="@Url.Action("IndexGeneral", "TomasDosisIndicacionHistorialClinico")">
+                            <i class="bi bi-calendar-check card-historiales card-icon"></i> Checklist de Tomas
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link" href="@Url.Action("ProximasConsultas", "DetalleHistorialClinico")">
+                            <i class="bi bi-calendar-event card-historiales card-icon"></i> Próximas Consultas
+                        </a>
+                    </li>
+
                 }
                 <!-- Dueños (admin y veterinario) -->
                 @if (rolId == 1 || rolId == 3)

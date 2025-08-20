@@ -8,52 +8,52 @@
 <div class="main-content-bg">
     <div class="tabla-container">
         <h2 class="text-center mb-4">Historial de Consultas de mis Mascotas</h2>
+        <div class="text-center mb-3">
+            <button class="btn btn-unificado btn-sm me-2" onclick="filtrarConsultas('proceso')">Consultas en Proceso</button>
+            <button class="btn btn-unificado btn-sm" onclick="filtrarConsultas('finalizado')">Consultas Finalizadas</button>
+            <button class="btn btn-secondary btn-sm ms-2" onclick="filtrarConsultas('')">Todas</button>
+        </div>
         <p class="text-center">
             @Html.ActionLink("Registrar Consulta", "Create", new { duenioId = ViewBag.DuenioId, tipo = "Consulta" }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
-        <table class="table table-custom">
-            <tr>
-                <th>Mascota</th>
-                <th>Motivo</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Posible Fin</th>
-                <th>Acciones</th>
-            </tr>
-            @foreach (var item in Model)
-            {
+        <div id="tablaConsultas">
+            <table class="table table-custom">
                 <tr>
-                    <td>@item.NombreMascota</td>
-                    <td>@item.Motivo</td>
-                    <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
-                    <td>@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")</td>
-                    <td>
-                        <div class="acciones-btn-group" style="margin-bottom:6px;">
-                            <button type="button" class="btn btn-unificado btn-sm" title="Detalles"
-                                    onclick="mostrarDetallesHistorialClinico(
-                    '@item.NombreMascota',
-                    '@item.NombreDuenio',
-                    '@item.Tipo',
-                    '@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")',
-                    '@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")',
-                    '@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")',
-                    '@item.Motivo'
-                )">
-                                <i class="bi bi-info-circle"></i>
-                            </button>
-                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                        </div>
-                        <div class="acciones-btn-group">
-                            <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Detalles Clínicos">
-                                <i class="bi bi-clipboard2-pulse"></i>
-                            </a>
-                        </div>
-                    </td>
+                    <th>Mascota</th>
+                    <th>Motivo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Posible Fin</th>
+                    <th>Fecha Final</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-        </table>
-    </div>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.NombreMascota</td>
+                        <td>@item.Motivo</td>
+                        <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
+                        <td>@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")</td>
+                        <td>@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")</td>
+                        <td>
+                            <div class="acciones-btn-group" style="margin-bottom:6px;">
+                                <a href="@Url.Action("Edit", new { id = item.Id })"
+                                   class="btn btn-unificado btn-sm @(item.FechaFinTratamiento.HasValue ? "disabled" : "")"
+                                   title="Editar"
+                                   @(item.FechaFinTratamiento.HasValue ? "tabindex='-1' aria-disabled='true'" : "")>
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            </div>
+                            <div class="acciones-btn-group">
+                                <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Diagnóstico">
+                                    <i class="bi bi-clipboard2-pulse"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+        </div>
 </div>
 
 <div class="modal fade" id="detallesHistorialClinicoModal" tabindex="-1" aria-labelledby="detallesHistorialClinicoModalLabel" aria-hidden="true">
@@ -98,18 +98,15 @@
     }
 }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function mostrarDetallesHistorialClinico(nombreMascota, nombreDuenio, tipo, fechaInicio, fechaPosibleFin, fechaFin, motivo) {
-        var html = '';
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Mascota:</div><div class="col-7 modal-details-value">${nombreMascota}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Dueño:</div><div class="col-7 modal-details-value">${nombreDuenio}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Tipo:</div><div class="col-7 modal-details-value">${tipo}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Inicio:</div><div class="col-7 modal-details-value">${fechaInicio}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Posible Fin:</div><div class="col-7 modal-details-value">${fechaPosibleFin}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Fin:</div><div class="col-7 modal-details-value">${fechaFin}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Motivo:</div><div class="col-7 modal-details-value">${motivo}</div></div>`;
-        document.getElementById('detallesHistorialClinicoBody').innerHTML = html;
-        var modal = new bootstrap.Modal(document.getElementById('detallesHistorialClinicoModal'));
-        modal.show();
-    }
-</script>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function filtrarConsultas(estado) {
+            $.get(window.location.pathname, { estado: estado }, function (html) {
+                // Extrae solo el contenido de #tablaConsultas del HTML devuelto
+                var newTable = $(html).find("#tablaConsultas").html();
+                $("#tablaConsultas").html(newTable);
+            });
+        }
+    </script>

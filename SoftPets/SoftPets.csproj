@@ -137,6 +137,7 @@
     <Compile Include="Controllers\MascotasController.cs" />
     <Compile Include="Controllers\RolesController.cs" />
     <Compile Include="Controllers\TendenciasController.cs" />
+    <Compile Include="Controllers\TomasDosisIndicacionHistorialClinicoController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
     <Compile Include="Controllers\VacunacionesController.cs" />
     <Compile Include="Controllers\VacunasController.cs" />
@@ -155,9 +156,12 @@
     <Compile Include="Models\IndicacionHistorialClinico.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\Mascota.cs" />
+    <Compile Include="Models\ProximaConsultaVM.cs" />
     <Compile Include="Models\QRPublico.cs" />
     <Compile Include="Models\Rol.cs" />
     <Compile Include="Models\Tendencia.cs" />
+    <Compile Include="Models\TomasDosisIndicacionHistorialClinico.cs" />
+    <Compile Include="Models\TomasDosisIndicacionHistorialClinicoVM.cs" />
     <Compile Include="Models\Usuario.cs" />
     <Compile Include="Models\Vacuna.cs" />
     <Compile Include="Models\Vacunacion.cs" />
@@ -249,10 +253,15 @@
     <Content Include="Views\DosisIndicacionHistorialClinico\IndexGeneral.cshtml" />
     <Content Include="Views\DosisIndicacionHistorialClinico\Grafico.cshtml" />
     <Content Include="Views\DosisIndicacionHistorialClinico\_TablaDosis.cshtml" />
+    <Content Include="Views\TomasDosisIndicacionHistorialClinico\Index.cshtml" />
+    <Content Include="Views\TomasDosisIndicacionHistorialClinico\IndexGeneral.cshtml" />
+    <Content Include="Views\TomasDosisIndicacionHistorialClinico\_TablaTomasGeneral.cshtml" />
+    <Content Include="Views\DetalleHistorialClinico\ProximasConsultas.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\aaa\" />
+    <Folder Include="Views\asd\" />
     <Folder Include="Views\bbb\" />
     <Folder Include="Views\ccc\" />
   </ItemGroup>

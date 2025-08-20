@@ -7,29 +7,29 @@
 
 <div class="main-content-bg">
     <div class="tabla-container">
-        <h2 class="text-center mb-4">Detalles del Historial Clínico</h2>
+        <h2 class="text-center mb-4">Diagnóstico de @ViewBag.Motivo</h2>
         <p class="text-center">
-            @Html.ActionLink("Registrar Detalle", "Create", new { historialClinicoId = historialClinicoId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+            @Html.ActionLink("Registrar Diagnóstico", "Create", new { historialClinicoId = historialClinicoId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
         <table class="table table-custom">
             <tr>
                 <th>Fecha Consulta</th>
-                <th>Recomendaciones</th>
-                <th>Fecha Futura Consulta</th>
+                <th>Observaciones</th>
+                <th>Próxima fecha de consulta</th>
                 <th>Acciones</th>
             </tr>
             @foreach (var item in Model)
             {
                 <tr>
                     <td>@item.FechaConsulta.ToString("dd/MM/yyyy")</td>
-                    <td>@item.Recomendaciones</td>
+                    <td class="descripcion-multilinea">@item.Recomendaciones</td>
                     <td>@(item.FechaFuturaConsulta.HasValue ? item.FechaFuturaConsulta.Value.ToString("dd/MM/yyyy") : "")</td>
                     <td>
-                       
+
                         <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a href="@Url.Action("Index", "IndicacionHistorialClinico", new { detalleHistorialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Indicaciones">
+                        <a href="@Url.Action("Index", "IndicacionHistorialClinico", new { detalleHistorialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Tratamiento">
                             <i class="bi bi-capsule"></i>
                         </a>
                     </td>

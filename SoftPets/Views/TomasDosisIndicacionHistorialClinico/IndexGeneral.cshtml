@@ -1,0 +1,107 @@
+﻿@model IEnumerable<SoftPets.Models.TomasDosisIndicacionHistorialClinicoVM>
+@{
+    ViewBag.Title = "Historial de Tomas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string estado = ViewBag.Estado as string ?? "";
+    string mascota = ViewBag.Mascota as string ?? "";
+    string medicamento = ViewBag.Medicamento as string ?? "";
+    string motivo = ViewBag.Motivo as string ?? "";
+    string fecha = ViewBag.Fecha as string ?? "";
+}
+
+<div class="main-content-bg" style="max-width:1100px;">
+    <div class="tabla-container" style="overflow-x:auto; min-width:1100px;">
+        <h2 class="text-center mb-4">Historial de Tomas</h2>
+        <form id="filtroForm" class="row mb-3 g-2 justify-content-center" autocomplete="off">
+            <div class="col-12 d-flex flex-wrap align-items-end justify-content-center gap-2">
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">-- Estado --</option>
+                        <option value="Pendiente" @(estado == "Pendiente" ? "selected" : "")>Pendiente</option>
+                        <option value="Realizada" @(estado == "Realizada" ? "selected" : "")>Realizada</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Motivo</label>
+                    <input type="text" name="motivo" class="form-control" placeholder="Motivo" value="@motivo" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Mascota</label>
+                    <input type="text" name="mascota" class="form-control" placeholder="Mascota" value="@mascota" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Medicamento</label>
+                    <input type="text" name="medicamento" class="form-control" placeholder="Medicamento" value="@medicamento" />
+                </div>
+                <div>
+                    <label class="form-label mb-0" style="font-size:0.9em;">Fecha</label>
+                    <input type="date" name="fecha" class="form-control" value="@fecha" />
+                </div>
+            </div>
+        </form>
+        <div id="tablaTomasGeneral">
+            @Html.Partial("_TablaTomasGeneral", Model)
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+function cargarTablaTomas() {
+    var data = $("#filtroForm").serialize();
+    $.get('@Url.Action("FiltrarAjax", "TomasDosisIndicacionHistorialClinico")', data, function (html) {
+        $("#tablaTomasGeneral").html(html);
+    });
+}
+
+// Filtrar en tiempo real al cambiar cualquier campo
+$('#filtroForm input, #filtroForm select').on('change keyup', function () {
+    cargarTablaTomas();
+});
+
+// Bloquear el submit del form para que no recargue la página
+$('#filtroForm').on('submit', function (e) {
+    e.preventDefault();
+    cargarTablaTomas();
+});
+
+function marcarToma(id) {
+    Swal.fire({
+        title: '¿Desea agregar una observación?',
+        input: 'textarea',
+        inputPlaceholder: 'Observaciones (opcional)',
+        showCancelButton: true,
+        confirmButtonText: 'Registrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            var obs = result.value || "";
+            $.post('@Url.Action("MarcarRealizada", "TomasDosisIndicacionHistorialClinico")', { id: id, observacion: obs }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Toma registrada!',
+                        showConfirmButton: false,
+                        timer: 1200
+                    }).then(() => {
+                        cargarTablaTomas();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo registrar la toma.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        }
+    });
+}
+    </script>
+}

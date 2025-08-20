@@ -12,7 +12,7 @@
 
 <div class="main-content-bg">
     <div class="tabla-container">
-        <h2 class="text-center mb-4">Indicaciones del Detalle Clínico</h2>
+        <h2 class="text-center mb-4">Tratamiento de @ViewBag.Motivo</h2>
         <p class="text-center">
             @Html.ActionLink("Registrar Indicación", "Create", new { detalleHistorialClinicoId = detalleHistorialClinicoId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
@@ -25,15 +25,19 @@
             </tr>
             @foreach (var item in Model)
             {
+                var hayMedicamento = !string.IsNullOrWhiteSpace(item.Medicamento);
                 <tr>
-                    <td>@item.Medicamento</td>
-                    <td>@item.Indicacion</td>
+                    <td>@(hayMedicamento ? item.Medicamento : "--")</td>
+                    <td class="descripcion-multilinea">@item.Indicacion</td>
                     <td>@item.Estado</td>
                     <td>
                         <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a href="@Url.Action("Index", "DosisIndicacionHistorialClinico", new { IndicacionesHistorialesClinicosId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Dosis">
+                        <a href="@Url.Action("Index", "DosisIndicacionHistorialClinico", new { IndicacionesHistorialesClinicosId = item.Id })"
+                           class="btn btn-unificado btn-sm @(hayMedicamento ? "" : "disabled")"
+                           title="Ver Dosis"
+                           @(hayMedicamento ? "" : "tabindex='-1' aria-disabled='true'")>
                             <i class="bi bi-clock-history"></i>
                         </a>
                     </td>

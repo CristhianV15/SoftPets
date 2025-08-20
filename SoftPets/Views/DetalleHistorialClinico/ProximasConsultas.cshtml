@@ -1,0 +1,54 @@
+﻿@model IEnumerable<SoftPets.Models.ProximaConsultaVM>
+@{
+    ViewBag.Title = "Próximas Consultas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content-bg" style="max-width:900px;">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Próximas Consultas</h2>
+        <table class="table table-custom">
+            <tr>
+                <th>Mascota</th>
+                <th>Tipo</th>
+                <th>Motivo</th>
+                <th>Fecha Consulta</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.NombreMascota</td>
+                    <td>
+                        @if (item.Tipo == "Emergencia")
+                        {
+                            <span class="badge bg-danger">Emergencia</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info text-dark">Consulta</span>
+                        }
+                    </td>
+                    <td>@item.Motivo</td>
+                    <td>@item.FechaFuturaConsulta.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (item.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Realizada</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.HistorialClinicoId })" class="btn btn-unificado btn-sm" title="Ver Detalle">
+                            <i class="bi bi-info-circle"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

@@ -15,8 +15,22 @@ namespace SoftPets.Controllers
         public ActionResult Index(int historialClinicoId)
         {
             var lista = new List<DetalleHistorialClinico>();
+            string motivo = "";
+
             try
             {
+                // Obtener el motivo del historial clínico
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(@"SELECT Motivo FROM HistorialesClinicos WHERE Id = @HistorialClinicoId", con))
+                {
+                    cmd.Parameters.AddWithValue("@HistorialClinicoId", historialClinicoId);
+                    con.Open();
+                    var result = cmd.ExecuteScalar();
+                    if (result != null)
+                        motivo = result.ToString();
+                }
+
+                // Obtener los detalles
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand(@"SELECT * FROM DetallesHistorialesClinicos WHERE HistorialClinicoId=@HistorialClinicoId", con))
                 {
@@ -38,6 +52,7 @@ namespace SoftPets.Controllers
                     }
                 }
                 ViewBag.HistorialClinicoId = historialClinicoId;
+                ViewBag.Motivo = motivo;
             }
             catch (Exception ex)
             {
@@ -45,12 +60,17 @@ namespace SoftPets.Controllers
             }
             return View(lista);
         }
-
         // Crear detalle
         public ActionResult Create(int historialClinicoId)
         {
             ViewBag.HistorialClinicoId = historialClinicoId;
-            return View();
+            var model = new DetalleHistorialClinico
+            {
+                HistorialClinicoId = historialClinicoId,
+                FechaConsulta = DateTime.Now.Date,
+                FechaFuturaConsulta = DateTime.Now.Date.AddDays(7)
+            };
+            return View(model);
         }
 
         [HttpPost]
@@ -158,6 +178,50 @@ namespace SoftPets.Controllers
             ViewBag.HistorialClinicoId = model.HistorialClinicoId;
             return View(model);
         }
+
+
+        public ActionResult ProximasConsultas()
+        {
+            int duenioId = (int)Session["DuenioId"];
+            var lista = new List<ProximaConsultaVM>();
+
+            string query = @"
+        SELECT d.Id, d.HistorialClinicoId, d.FechaFuturaConsulta, d.Estado, h.Tipo, h.Motivo, m.Nombre AS NombreMascota
+        FROM DetallesHistorialesClinicos d
+        INNER JOIN HistorialesClinicos h ON d.HistorialClinicoId = h.Id
+        INNER JOIN Mascotas m ON h.MascotaId = m.Id
+        WHERE h.DuenioId = @DuenioId
+          AND d.FechaFuturaConsulta IS NOT NULL
+          AND d.FechaFuturaConsulta >= GETDATE()
+          AND (d.Estado IS NULL OR d.Estado = 'Pendiente')
+        ORDER BY d.FechaFuturaConsulta
+    ";
+
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        lista.Add(new ProximaConsultaVM
+                        {
+                            Id = (int)dr["Id"],
+                            HistorialClinicoId = (int)dr["HistorialClinicoId"],
+                            FechaFuturaConsulta = (DateTime)dr["FechaFuturaConsulta"],
+                            Estado = dr["Estado"] != DBNull.Value ? dr["Estado"].ToString() : "Pendiente",
+                            Tipo = dr["Tipo"].ToString(),
+                            Motivo = dr["Motivo"].ToString(),
+                            NombreMascota = dr["NombreMascota"].ToString()
+                        });
+                    }
+                }
+            }
+            return View(lista);
+        }
+
 
         // Eliminar detalle
         public ActionResult Delete(int id, int historialClinicoId)

@@ -159,50 +159,70 @@ WHERE h.DuenioId = @DuenioId
 
 
         // Listar dosis de una indicación
-        public ActionResult Index(int IndicacionesHistorialesClinicosId)
+       public ActionResult Index(int IndicacionesHistorialesClinicosId)
+{
+    var lista = new List<DosisIndicacionHistorialClinico>();
+    string medicamento = "";
+
+    try
+    {
+        // Obtener el medicamento de la indicación seleccionada
+        using (var con = new SqlConnection(connectionString))
+        using (var cmd = new SqlCommand(@"SELECT Medicamento FROM IndicacionesHistorialesClinicos WHERE Id = @Id", con))
         {
-            var lista = new List<DosisIndicacionHistorialClinico>();
-            try
-            {
-                using (var con = new SqlConnection(connectionString))
-                using (var cmd = new SqlCommand(@"SELECT * FROM DosisIndicacionesHistorialesClinicos WHERE IndicacionesHistorialesClinicosId=@IndicacionesHistorialesClinicosId", con))
-                {
-                    cmd.Parameters.AddWithValue("@IndicacionesHistorialesClinicosId", IndicacionesHistorialesClinicosId);
-                    con.Open();
-                    using (var dr = cmd.ExecuteReader())
-                    {
-                        while (dr.Read())
-                        {
-                            lista.Add(new DosisIndicacionHistorialClinico
-                            {
-                                Id = (int)dr["Id"],
-                                IndicacionesHistorialesClinicosId = (int)dr["IndicacionesHistorialesClinicosId"],
-                                Dosis = dr["Dosis"].ToString(),
-                                IntervaloCantidad = (int)dr["IntervaloCantidad"],
-                                IntervaloTipo = dr["IntervaloTipo"].ToString(),
-                                CantidadTotalDosis = dr["CantidadTotalDosis"] != DBNull.Value ? (int?)dr["CantidadTotalDosis"] : null,
-                                FechaInicioDosis = (DateTime)dr["FechaInicioDosis"],
-                                FechaFinDosis = dr["FechaFinDosis"] != DBNull.Value ? (DateTime?)dr["FechaFinDosis"] : null,
-                                EstadoAlerta = dr["EstadoAlerta"].ToString()
-                            });
-                        }
-                    }
-                }
-                ViewBag.IndicacionesHistorialesClinicosId = IndicacionesHistorialesClinicosId;
-            }
-            catch (Exception ex)
-            {
-                TempData["SwalError"] = "Error al cargar dosis: " + ex.Message;
-            }
-            return View(lista);
+            cmd.Parameters.AddWithValue("@Id", IndicacionesHistorialesClinicosId);
+            con.Open();
+            var result = cmd.ExecuteScalar();
+            if (result != null)
+                medicamento = result.ToString();
         }
-        // Crear dosis
+
+        // Obtener las dosis
+        using (var con = new SqlConnection(connectionString))
+        using (var cmd = new SqlCommand(@"SELECT * FROM DosisIndicacionesHistorialesClinicos WHERE IndicacionesHistorialesClinicosId=@IndicacionesHistorialesClinicosId", con))
+        {
+            cmd.Parameters.AddWithValue("@IndicacionesHistorialesClinicosId", IndicacionesHistorialesClinicosId);
+            con.Open();
+            using (var dr = cmd.ExecuteReader())
+            {
+                while (dr.Read())
+                {
+                    lista.Add(new DosisIndicacionHistorialClinico
+                    {
+                        Id = (int)dr["Id"],
+                        IndicacionesHistorialesClinicosId = (int)dr["IndicacionesHistorialesClinicosId"],
+                        Dosis = dr["Dosis"].ToString(),
+                        IntervaloCantidad = (int)dr["IntervaloCantidad"],
+                        IntervaloTipo = dr["IntervaloTipo"].ToString(),
+                        CantidadTotalDosis = dr["CantidadTotalDosis"] != DBNull.Value ? (int?)dr["CantidadTotalDosis"] : null,
+                        FechaInicioDosis = (DateTime)dr["FechaInicioDosis"],
+                        FechaFinDosis = dr["FechaFinDosis"] != DBNull.Value ? (DateTime?)dr["FechaFinDosis"] : null,
+                        EstadoAlerta = dr["EstadoAlerta"].ToString()
+                    });
+                }
+            }
+        }
+        ViewBag.IndicacionesHistorialesClinicosId = IndicacionesHistorialesClinicosId;
+        ViewBag.Medicamento = medicamento;
+    }
+    catch (Exception ex)
+    {
+        TempData["SwalError"] = "Error al cargar dosis: " + ex.Message;
+    }
+    return View(lista);
+}
         public ActionResult Create(int IndicacionesHistorialesClinicosId)
         {
             ViewBag.IndicacionesHistorialesClinicosId = IndicacionesHistorialesClinicosId;
-            return View();
+            var model = new DosisIndicacionHistorialClinico
+            {
+                IndicacionesHistorialesClinicosId = IndicacionesHistorialesClinicosId,
+                FechaInicioDosis = DateTime.Now,
+                FechaFinDosis = DateTime.Now // El JS lo actualizará automáticamente
+            };
+            return View(model);
         }
-  
+
 
 
         public ActionResult Grafico()
@@ -256,14 +276,16 @@ WHERE h.DuenioId = @DuenioId
         [ValidateAntiForgeryToken]
         public ActionResult Create(DosisIndicacionHistorialClinico model)
         {
+            int dosisId = 0;
             if (ModelState.IsValid)
             {
                 try
                 {
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"INSERT INTO DosisIndicacionesHistorialesClinicos 
-                        (IndicacionesHistorialesClinicosId, Dosis, IntervaloCantidad, IntervaloTipo, CantidadTotalDosis, FechaInicioDosis, FechaFinDosis, EstadoAlerta)
-                        VALUES (@IndicacionesHistorialesClinicosId, @Dosis, @IntervaloCantidad, @IntervaloTipo, @CantidadTotalDosis, @FechaInicioDosis, @FechaFinDosis, @EstadoAlerta)", con))
+                (IndicacionesHistorialesClinicosId, Dosis, IntervaloCantidad, IntervaloTipo, CantidadTotalDosis, FechaInicioDosis, FechaFinDosis, EstadoAlerta)
+                OUTPUT INSERTED.Id
+                VALUES (@IndicacionesHistorialesClinicosId, @Dosis, @IntervaloCantidad, @IntervaloTipo, @CantidadTotalDosis, @FechaInicioDosis, @FechaFinDosis, @EstadoAlerta)", con))
                     {
                         cmd.Parameters.AddWithValue("@IndicacionesHistorialesClinicosId", model.IndicacionesHistorialesClinicosId);
                         cmd.Parameters.AddWithValue("@Dosis", model.Dosis);
@@ -274,9 +296,20 @@ WHERE h.DuenioId = @DuenioId
                         cmd.Parameters.AddWithValue("@FechaFinDosis", (object)model.FechaFinDosis ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@EstadoAlerta", model.EstadoAlerta);
                         con.Open();
-                        cmd.ExecuteNonQuery();
+                        dosisId = (int)cmd.ExecuteScalar(); // Obtener el ID insertado
                     }
-                    TempData["SwalMascotaEditada"] = "Dosis creada correctamente";
+
+                    // LLAMADA CRÍTICA: Generar las tomas automáticamente
+                    int cantidadTotal = model.CantidadTotalDosis ?? 1;
+                    new TomasDosisIndicacionHistorialClinicoController().GenerarTomas(
+                        dosisId,
+                        model.FechaInicioDosis,
+                        model.IntervaloCantidad,
+                        model.IntervaloTipo,
+                        cantidadTotal
+                    );
+
+                    TempData["SwalMascotaEditada"] = "Dosis y tomas creadas correctamente";
                     return RedirectToAction("Index", new { IndicacionesHistorialesClinicosId = model.IndicacionesHistorialesClinicosId });
                 }
                 catch (Exception ex)

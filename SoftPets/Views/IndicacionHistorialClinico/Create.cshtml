@@ -24,7 +24,7 @@
                 @Html.HiddenFor(m => m.Estado, new { Value = "Pendiente" })
                 <div id="errorMsg" class="error-message"></div>
                 <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.Medicamento, htmlAttributes: new { @class = "form-label" })
+                    @Html.LabelFor(m => m.Medicamento, "Medicamento (opcional)", htmlAttributes: new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Medicamento, new { @class = "form-control", maxlength = 100, id = "Medicamento" })
                 </div>
                 <div class="form-group mb-3">
@@ -44,17 +44,17 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.querySelector('form').onsubmit = function (e) {
-            var medicamento = document.getElementById('Medicamento').value;
+            
             var indicacion = document.getElementById('Indicacion').value;
             var errorMsg = document.getElementById('errorMsg');
             errorMsg.style.display = 'none';
             errorMsg.innerText = '';
-            if (!medicamento) {
-                errorMsg.innerText = "Debe ingresar el medicamento.";
-                errorMsg.style.display = 'block';
-                e.preventDefault();
-                return false;
-            }
+            //if (!medicamento) {
+            //    errorMsg.innerText = "Debe ingresar el medicamento.";
+            //    errorMsg.style.display = 'block';
+            //    e.preventDefault();
+            //    return false;
+            //}
             if (!indicacion) {
                 errorMsg.innerText = "Debe ingresar la indicación.";
                 errorMsg.style.display = 'block';

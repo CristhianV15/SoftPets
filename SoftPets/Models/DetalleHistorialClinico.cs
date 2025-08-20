@@ -19,11 +19,11 @@ namespace SoftPets.Models
         public DateTime FechaConsulta { get; set; }
 
         [Required]
-        [StringLength(200)]
-        [Display(Name = "Recomendaciones")]
+        [StringLength(450)]
+        [Display(Name = "Observaciones")]
         public string Recomendaciones { get; set; }
 
-        [Display(Name = "Fecha Futura de Consulta")]
+        [Display(Name = "Próxima fecha de Consulta")]
         public DateTime? FechaFuturaConsulta { get; set; }
 
         // Relaciones

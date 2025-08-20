@@ -1,0 +1,44 @@
+﻿@model IEnumerable<SoftPets.Models.TomasDosisIndicacionHistorialClinicoVM>
+<div id="tablaTomasGeneral">
+    <table class="table table-custom">
+        <tr>
+            <th>Mascota</th>
+            <th>Motivo</th>
+            <th>Medicamento</th>
+            <th>Fecha y Hora</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+            <th>Acción</th>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.NombreMascota</td>
+                <td>@item.Motivo</td>
+                <td>@item.Medicamento</td>
+                <td>@item.FechaHoraProgramada.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @if (item.Estado == "Realizada")
+                    {
+                        <span class="badge bg-success">Realizada</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    }
+                </td>
+                <td>@item.Observaciones</td>
+                <td>
+                    @if (item.Estado == "Pendiente")
+                    {
+                        <button class="btn btn-unificado btn-sm" onclick="marcarToma(@item.Id)">Registrar Toma</button>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </td>
+            </tr>
+        }
+    </table>
+</div>

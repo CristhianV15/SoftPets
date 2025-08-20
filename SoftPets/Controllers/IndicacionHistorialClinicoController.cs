@@ -15,8 +15,26 @@ namespace SoftPets.Controllers
         public ActionResult Index(int detalleHistorialClinicoId)
         {
             var lista = new List<IndicacionHistorialClinico>();
+            string motivo = "";
+
             try
             {
+                // Obtener el motivo a partir del detalle
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(@"
+            SELECT h.Motivo
+            FROM DetallesHistorialesClinicos d
+            INNER JOIN HistorialesClinicos h ON d.HistorialClinicoId = h.Id
+            WHERE d.Id = @DetalleHistorialClinicoId", con))
+                {
+                    cmd.Parameters.AddWithValue("@DetalleHistorialClinicoId", detalleHistorialClinicoId);
+                    con.Open();
+                    var result = cmd.ExecuteScalar();
+                    if (result != null)
+                        motivo = result.ToString();
+                }
+
+                // Obtener las indicaciones
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand(@"SELECT * FROM IndicacionesHistorialesClinicos WHERE DetallesHistorialesClinicosId=@DetalleHistorialClinicoId", con))
                 {
@@ -38,11 +56,11 @@ namespace SoftPets.Controllers
                     }
                 }
                 ViewBag.DetalleHistorialClinicoId = detalleHistorialClinicoId;
+                ViewBag.Motivo = motivo;
             }
             catch (Exception ex)
             {
                 TempData["SwalError"] = "Error al cargar indicaciones: " + ex.Message;
-                ViewBag.DetalleHistorialClinicoId = detalleHistorialClinicoId;
             }
             return View(lista);
         }
@@ -71,8 +89,8 @@ namespace SoftPets.Controllers
                 VALUES (@DetalleHistorialClinicoId, @Medicamento, @Indicacion, @Estado)", con))
                     {
                         cmd.Parameters.AddWithValue("@DetalleHistorialClinicoId", model.DetalleHistorialClinicoId);
-                        cmd.Parameters.AddWithValue("@Medicamento", model.Medicamento);
-                        cmd.Parameters.AddWithValue("@Indicacion", model.Indicacion);
+                        cmd.Parameters.AddWithValue("@Medicamento", (object)model.Medicamento ?? DBNull.Value); 
+                       cmd.Parameters.AddWithValue("@Indicacion", model.Indicacion);
                         cmd.Parameters.AddWithValue("@Estado", model.Estado);
                         con.Open();
                         cmd.ExecuteNonQuery();

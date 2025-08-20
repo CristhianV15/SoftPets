@@ -11,14 +11,21 @@ namespace SoftPets.Controllers
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
 
-        public ActionResult IndexEmergenciaPorDuenio()
+        public ActionResult IndexEmergenciaPorDuenio(string estado = "")
         {
             int duenioId = (int)Session["DuenioId"];
             var lista = new List<HistorialClinico>();
+            string query = @"SELECT h.*, m.Nombre AS NombreMascota FROM HistorialesClinicos h
+                     INNER JOIN Mascotas m ON h.MascotaId = m.Id
+                     WHERE h.DuenioId=@DuenioId AND h.Tipo='Emergencia'";
+
+            if (estado == "proceso")
+                query += " AND h.FechaFinTratamiento IS NULL";
+            else if (estado == "finalizado")
+                query += " AND h.FechaFinTratamiento IS NOT NULL";
+
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand(@"SELECT h.*, m.Nombre AS NombreMascota FROM HistorialesClinicos h
-                                  INNER JOIN Mascotas m ON h.MascotaId = m.Id
-                                  WHERE h.DuenioId=@DuenioId AND h.Tipo='Emergencia'", con))
+            using (var cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 con.Open();
@@ -41,18 +48,27 @@ namespace SoftPets.Controllers
                     }
                 }
             }
+            if (Request.IsAjaxRequest())
+                return PartialView("IndexEmergenciaPorDuenio", lista);
             ViewBag.DuenioId = duenioId;
-            return View("IndexEmergenciaPorDuenio", lista); // Vista IndexEmergenciaPorDuenio.cshtml
+            return View(lista);
         }
 
-        public ActionResult IndexConsultaPorDuenio()
+        public ActionResult IndexConsultaPorDuenio(string estado = "")
         {
             int duenioId = (int)Session["DuenioId"];
             var lista = new List<HistorialClinico>();
+            string query = @"SELECT h.*, m.Nombre AS NombreMascota FROM HistorialesClinicos h
+                     INNER JOIN Mascotas m ON h.MascotaId = m.Id
+                     WHERE h.DuenioId=@DuenioId AND h.Tipo='Consulta'";
+
+            if (estado == "proceso")
+                query += " AND h.FechaFinTratamiento IS NULL";
+            else if (estado == "finalizado")
+                query += " AND h.FechaFinTratamiento IS NOT NULL";
+
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand(@"SELECT h.*, m.Nombre AS NombreMascota FROM HistorialesClinicos h
-                                  INNER JOIN Mascotas m ON h.MascotaId = m.Id
-                                  WHERE h.DuenioId=@DuenioId AND h.Tipo='Emergencia'", con))
+            using (var cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 con.Open();
@@ -75,15 +91,24 @@ namespace SoftPets.Controllers
                     }
                 }
             }
+            if (Request.IsAjaxRequest())
+                return PartialView("IndexConsultaPorDuenio", lista);
             ViewBag.DuenioId = duenioId;
-            return View("IndexConsultaPorDuenio", lista); // Vista IndexConsultaPorDuenio.cshtml
+            return View(lista);
         }
 
-        public ActionResult IndexEmergenciaPorMascota(int mascotaId)
+        public ActionResult IndexEmergenciaPorMascota(int mascotaId, string estado = "")
         {
             var lista = new List<HistorialClinico>();
+            string query = @"SELECT * FROM HistorialesClinicos WHERE MascotaId=@MascotaId AND Tipo='Emergencia'";
+
+            if (estado == "proceso")
+                query += " AND FechaFinTratamiento IS NULL";
+            else if (estado == "finalizado")
+                query += " AND FechaFinTratamiento IS NOT NULL";
+
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand(@"SELECT * FROM HistorialesClinicos WHERE MascotaId=@MascotaId AND Tipo='Emergencia'", con))
+            using (var cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@MascotaId", mascotaId);
                 con.Open();
@@ -105,17 +130,26 @@ namespace SoftPets.Controllers
                     }
                 }
             }
+            if (Request.IsAjaxRequest())
+                return PartialView("IndexEmergenciaPorMascota", lista);
             ViewBag.MascotaId = mascotaId;
             ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId);
-            return View("IndexEmergenciaPorMascota", lista); // Vista IndexEmergenciaPorMascota.cshtml
+            return View(lista);
         }
 
 
-        public ActionResult IndexConsultaPorMascota(int mascotaId)
+        public ActionResult IndexConsultaPorMascota(int mascotaId, string estado = "")
         {
             var lista = new List<HistorialClinico>();
+            string query = @"SELECT * FROM HistorialesClinicos WHERE MascotaId=@MascotaId AND Tipo='Consulta'";
+
+            if (estado == "proceso")
+                query += " AND FechaFinTratamiento IS NULL";
+            else if (estado == "finalizado")
+                query += " AND FechaFinTratamiento IS NOT NULL";
+
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand(@"SELECT * FROM HistorialesClinicos WHERE MascotaId=@MascotaId AND Tipo='Consulta'", con))
+            using (var cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@MascotaId", mascotaId);
                 con.Open();
@@ -137,11 +171,12 @@ namespace SoftPets.Controllers
                     }
                 }
             }
+            if (Request.IsAjaxRequest())
+                return PartialView("IndexConsultaPorMascota", lista);
             ViewBag.MascotaId = mascotaId;
             ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId);
-            return View("IndexConsultaPorMascota", lista); // Vista IndexConsultaPorMascota.cshtml
+            return View(lista);
         }
-
 
         private List<SelectListItem> ObtenerMascotasPorDuenio(int duenioId)
         {

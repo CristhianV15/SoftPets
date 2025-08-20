@@ -14,7 +14,7 @@ namespace SoftPets.Models
         [Display(Name = "Detalle Historial Clínico")]
         public int DetalleHistorialClinicoId { get; set; }
 
-        [Required]
+        
         [StringLength(100)]
         [Display(Name = "Medicamento")]
         public string Medicamento { get; set; }
