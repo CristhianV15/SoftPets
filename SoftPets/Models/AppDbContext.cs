@@ -45,10 +45,10 @@ namespace SoftPets.Models
                 .HasForeignKey(m => m.DuenioId);
 
             // Relaciones para Mascota con Vacunacion, HistorialClinico, Tendencia, QRPublico
-            modelBuilder.Entity<Mascota>()
-                .HasMany(m => m.Vacunaciones)
-                .WithRequired(v => v.Mascota)
-                .HasForeignKey(v => v.MascotaId);
+            //modelBuilder.Entity<Mascota>()
+            //    .HasMany(m => m.Vacunaciones)
+            //    .WithRequired(v => v.Mascota)
+            //    .HasForeignKey(v => v.MascotaId);
 
             modelBuilder.Entity<Mascota>()
                 .HasMany(m => m.HistorialesClinicos)
@@ -65,17 +65,17 @@ namespace SoftPets.Models
                 .WithRequired(q => q.Mascota)
                 .HasForeignKey(q => q.MascotaId);
 
-            // Relaciones para Vacuna con Vacunacion
-            modelBuilder.Entity<Vacuna>()
-                .HasMany(v => v.Vacunaciones)
-                .WithRequired(vac => vac.Vacuna)
-                .HasForeignKey(vac => vac.VacunaId);
+            //// Relaciones para Vacuna con Vacunacion
+            //modelBuilder.Entity<Vacuna>()
+            //    .HasMany(v => v.Vacunaciones)
+            //    .WithRequired(vac => vac.Vacuna)
+            //    .HasForeignKey(vac => vac.VacunaId);
 
-            // Relaciones para Usuario (como veterinario) con Vacunacion e HistorialClinico
-            modelBuilder.Entity<Usuario>()
-                .HasMany(u => u.VacunacionesRealizadas)
-                .WithRequired(v => v.Veterinario)
-                .HasForeignKey(v => v.VeterinarioId);
+            //// Relaciones para Usuario (como veterinario) con Vacunacion e HistorialClinico
+            //modelBuilder.Entity<Usuario>()
+            //    .HasMany(u => u.VacunacionesRealizadas)
+            //    .WithRequired(v => v.Veterinario)
+            //    .HasForeignKey(v => v.VeterinarioId);
 
             //modelBuilder.Entity<Usuario>()
             //    .HasMany(u => u.HistorialesClinicosRealizados)

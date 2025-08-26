@@ -1,74 +1,89 @@
 ﻿@model IEnumerable<SoftPets.Models.Vacunacion>
 @{
-    ViewBag.Title = "Historial de Vacunas";
+    ViewBag.Title = "Vacunaciones y Pastillas";
     Layout = "~/Views/Shared/_Layout.cshtml";
     int mascotaId = ViewBag.MascotaId;
-    string nombreMascota = ViewBag.NombreMascota;
+    string tipo = ViewBag.Tipo as string ?? "";
+    string estado = ViewBag.Estado as string ?? "";
 }
 
-<style>
-    .table-custom {
-        margin: 30px auto;
-        max-width: 800px;
-        background: #fff;
-        box-shadow: 0 2px 12px rgba(41,190,253,0.10);
-        border-radius: 12px;
-        overflow: hidden;
-    }
+<div class="main-content-bg">
+    <div class="tabla-container">
+        <h2 class="text-center mb-4">Vacunaciones y Pastillas de la Mascota</h2>
+        <form id="filtroForm" class="row mb-3 g-2 justify-content-center">
+            <div class="col-auto">
+                <select name="tipo" class="form-select">
+                    <option value="">-- Tipo --</option>
+                    <option value="Vacuna" @(tipo == "Vacuna" ? "selected" : "")>Vacuna</option>
+                    <option value="Pastilla" @(tipo == "Pastilla" ? "selected" : "")>Pastilla</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="estado" class="form-select">
+                    <option value="">-- Estado --</option>
+                    <option value="Pendiente" @(estado == "Pendiente" ? "selected" : "")>Pendiente</option>
+                    <option value="Aplicada" @(estado == "Aplicada" ? "selected" : "")>Aplicada</option>
+                </select>
+            </div>
+            <div class="col-auto align-self-end">
+                @Html.ActionLink("Registrar Vacunación/Pastilla", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+            </div>
+        </form>
+        <div id="tablaVacunaciones">
+            <table class="table table-custom">
+                <tr>
+                    <th>Vacuna/Pastilla</th>
+                    <th>Dosis Aplicada</th>
+                    <th>Fecha Aplicada</th>
+                    <th>Fecha Programada</th>
+                    <th>Lote</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Acciones</th>
+                </tr>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.VacunaId</td> <!-- Puedes mostrar el nombre con un ViewBag o ViewModel si lo necesitas -->
+                        <td>@item.DosisAplicada</td>
+                        <td>@(item.FechaAplicada.HasValue ? item.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
+                        <td>@(item.FechaProgramada.HasValue ? item.FechaProgramada.Value.ToString("dd/MM/yyyy") : "-")</td>
+                        <td>@item.Lote</td>
+                        <td>
+                            @if (item.Estado == "Aplicada")
+                            {
+                                <span class="badge bg-success">Aplicada</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                            }
+                        </td>
+                        <td>@item.Observaciones</td>
+                        <td>
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+</div>
 
-        .table-custom th, .table-custom td {
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table-custom th {
-            background: #006C67;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1em;
-            letter-spacing: 1px;
-        }
-
-        .table-custom tr:nth-child(even) {
-            background: #F8F9FA;
-        }
-
-    .btn-crear {
-        border: 2px solid #CBDF90;
-        color: #222 !important;
-        background: #fff !important;
-        font-weight: 600;
-        letter-spacing: 1px;
-        box-shadow: 0 2px 8px rgba(203,223,144,0.08);
-        transition: background 0.2s, color 0.2s;
-    }
-
-        .btn-crear:hover, .btn-crear:focus {
-            background: #CBDF90 !important;
-            color: #fff !important;
-        }
-</style>
-
-<h2 class="text-center mb-4">Historial de Vacunas de @nombreMascota</h2>
-<p class="text-center">
-    @Html.ActionLink("Registrar Vacuna", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-crear mb-3" })
-</p>
-<table class="table table-custom">
-    <tr>
-        <th>Vacuna</th>
-        <th>Fecha</th>
-        <th>Veterinario</th>
-        <th>Observaciones</th>
-        <th>Fecha Registro</th>
-    </tr>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.VacunaId</td>
-            <td>@(item.Fecha.HasValue ? item.Fecha.Value.ToShortDateString() : "")</td>
-            <td>@item.VeterinarioId</td>
-            <td>@item.Observaciones</td>
-            <td>@item.FechaCreacion.ToShortDateString()</td>
-        </tr>
-    }
-</table>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function cargarTablaVacunaciones() {
+    var data = $("#filtroForm").serialize();
+    $.get('@Url.Action("Index", "Vacunaciones")', data + "&mascotaId=@mascotaId", function (html) {
+        var newTable = $(html).find("#tablaVacunaciones").html();
+        $("#tablaVacunaciones").html(newTable);
+    });
+}
+$('#filtroForm select').on('change', function () {
+    cargarTablaVacunaciones();
+});
+    </script>
+}

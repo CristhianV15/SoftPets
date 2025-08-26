@@ -14,7 +14,7 @@
                 <th>Motivo</th>
                 <th>Fecha Consulta</th>
                 <th>Estado</th>
-                <th>Acciones</th>
+                <th style="min-width: 170px;">Acciones</th>
             </tr>
             @foreach (var item in Model)
             {
@@ -43,12 +43,61 @@
                         }
                     </td>
                     <td>
-                        <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.HistorialClinicoId })" class="btn btn-unificado btn-sm" title="Ver Detalle">
-                            <i class="bi bi-info-circle"></i>
-                        </a>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.HistorialClinicoId })" class="btn btn-unificado btn-sm" title="Ver Detalle">
+                                <i class="bi bi-info-circle"></i>
+                            </a>
+                        </div>
+                        @if (item.Estado == "Pendiente")
+                        {
+                            <div class="acciones-btn-group" style="margin-top:8px;">
+                                <button class="btn btn-unificado btn-sm" onclick="marcarConsultaRealizada(@item.Id)">
+                                    <i class="bi bi-check-circle" style="color:#22c55e;"></i>
+                                </button>
+                            </div>
+                        }
                     </td>
                 </tr>
             }
         </table>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function marcarConsultaRealizada(id) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea marcar esta consulta como realizada?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, marcar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('@Url.Action("MarcarConsultaRealizada", "DetalleHistorialClinico")', { id: id }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Consulta marcada como realizada!',
+                        showConfirmButton: false,
+                        timer: 1200
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo marcar la consulta.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        }
+    });
+}
+    </script>
+}

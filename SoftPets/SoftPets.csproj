@@ -257,6 +257,8 @@
     <Content Include="Views\TomasDosisIndicacionHistorialClinico\IndexGeneral.cshtml" />
     <Content Include="Views\TomasDosisIndicacionHistorialClinico\_TablaTomasGeneral.cshtml" />
     <Content Include="Views\DetalleHistorialClinico\ProximasConsultas.cshtml" />
+    <Content Include="Views\Vacunas\_TablaVacunas.cshtml" />
+    <Content Include="Views\Vacunaciones\Edit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

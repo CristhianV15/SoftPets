@@ -7,41 +7,35 @@ using System.Web;
 
 namespace SoftPets.Models
 {
-    public class Vacunacion
-    {
-        [Key]
-        public int Id { get; set; }
+        public class Vacunacion
+        {
+            [Key]
+            public int Id { get; set; }
 
-        [Required]
-        public int MascotaId { get; set; }
+            [Required]
+            public int MascotaId { get; set; }
 
-        [Required]
-        public int VacunaId { get; set; }
+            [Required]
+            public int VacunaId { get; set; }
 
-        public DateTime? Fecha { get; set; }
+            [StringLength(50)]
+            public string DosisAplicada { get; set; }
 
-        [Required]
-        public int VeterinarioId { get; set; } // FK a Usuario.Id (veterinario)
+            public DateTime? FechaAplicada { get; set; }
+            public DateTime? FechaProgramada { get; set; }
 
-        [StringLength(255)]
-        public string Observaciones { get; set; }
+            [StringLength(50)]
+            public string Lote { get; set; }
 
-        [Required]
-        public char Estado { get; set; }
+            [StringLength(255)]
+            public string Observaciones { get; set; }
 
-        [Required]
-        public DateTime FechaCreacion { get; set; }
+            [Required, StringLength(20)]
+            public string Estado { get; set; } // 'Pendiente', 'Aplicada'
 
-        public DateTime? FechaActualizacion { get; set; }
+            [Required]
+            public DateTime FechaCreacion { get; set; }
 
-        // Relaciones
-        [ForeignKey("MascotaId")]
-        public virtual Mascota Mascota { get; set; }
-
-        [ForeignKey("VacunaId")]
-        public virtual Vacuna Vacuna { get; set; }
-
-        [ForeignKey("VeterinarioId")]
-        public virtual Usuario Veterinario { get; set; }
+            public DateTime? FechaActualizacion { get; set; }
+        }
     }
-}

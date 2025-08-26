@@ -17,219 +17,278 @@ namespace SoftPets.Controllers
     {
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
 
-        // GET: Vacunas
-        public ActionResult Index()
+        public ActionResult Index(string tipo = "", string estado = "")
         {
-            List<Vacuna> vacunas = new List<Vacuna>();
+            var lista = new List<Vacuna>();
+            string query = "SELECT * FROM Vacunas WHERE 1=1";
+            if (!string.IsNullOrEmpty(tipo))
+                query += " AND Tipo = @Tipo";
+            if (!string.IsNullOrEmpty(estado))
+                query += " AND Estado = @Estado";
 
-            using (SqlConnection con = new SqlConnection(connectionString))
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(query, con))
             {
-                using (SqlCommand cmd = new SqlCommand("VacunasSelect", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Id", DBNull.Value);
+                if (!string.IsNullOrEmpty(tipo))
+                    cmd.Parameters.AddWithValue("@Tipo", tipo);
+                if (!string.IsNullOrEmpty(estado))
+                    cmd.Parameters.AddWithValue("@Estado", estado);
 
-                    con.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
                     {
-                        vacunas.Add(new Vacuna
+                        lista.Add(new Vacuna
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Nombre = reader["Nombre"].ToString(),
-                            Descripcion = reader["Descripcion"].ToString(),
-                            Lote = reader["Lote"].ToString(),
-                            Estado = Convert.ToChar(reader["Estado"]),
-                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
-                            FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Descripcion = dr["Descripcion"].ToString(),
+                            Lote = dr["Lote"].ToString(),
+                            Estado = dr["Estado"].ToString(),
+                            FechaCreacion = (DateTime)dr["FechaCreacion"],
+                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
+                            Tipo = dr["Tipo"].ToString(),
+                            Frecuencia = dr["Frecuencia"] != DBNull.Value ? (int?)dr["Frecuencia"] : null,
+                            UnidadFrecuencia = dr["UnidadFrecuencia"].ToString(),
+                            Duracion = dr["Duracion"] != DBNull.Value ? (int?)dr["Duracion"] : null,
+                            UnidadDuracion = dr["UnidadDuracion"].ToString(),
+                            RangoDosis = dr["RangoDosis"].ToString()
                         });
                     }
                 }
             }
-            return View(vacunas);
+            ViewBag.Tipo = tipo;
+            ViewBag.Estado = estado;
+            return View(lista);
         }
 
-        // GET: Vacunas/Details/5
-        public ActionResult Details(int id)
+        public ActionResult FiltrarAjax(string tipo = "", string estado = "")
         {
-            Vacuna vacuna = null;
+            var lista = new List<Vacuna>();
+            string query = "SELECT * FROM Vacunas WHERE 1=1";
+            if (!string.IsNullOrEmpty(tipo))
+                query += " AND Tipo = @Tipo";
+            if (!string.IsNullOrEmpty(estado))
+                query += " AND Estado = @Estado";
 
-            using (SqlConnection con = new SqlConnection(connectionString))
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(query, con))
             {
-                using (SqlCommand cmd = new SqlCommand("VacunasSelect", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Id", id);
+                if (!string.IsNullOrEmpty(tipo))
+                    cmd.Parameters.AddWithValue("@Tipo", tipo);
+                if (!string.IsNullOrEmpty(estado))
+                    cmd.Parameters.AddWithValue("@Estado", estado);
 
-                    con.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
                     {
-                        vacuna = new Vacuna
+                        lista.Add(new Vacuna
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Nombre = reader["Nombre"].ToString(),
-                            Descripcion = reader["Descripcion"].ToString(),
-                            Lote = reader["Lote"].ToString(),
-                            Estado = Convert.ToChar(reader["Estado"]),
-                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
-                            FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
-                        };
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Descripcion = dr["Descripcion"].ToString(),
+                            Lote = dr["Lote"].ToString(),
+                            Estado = dr["Estado"].ToString(),
+                            FechaCreacion = (DateTime)dr["FechaCreacion"],
+                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
+                            Tipo = dr["Tipo"].ToString(),
+                            Frecuencia = dr["Frecuencia"] != DBNull.Value ? (int?)dr["Frecuencia"] : null,
+                            UnidadFrecuencia = dr["UnidadFrecuencia"].ToString(),
+                            Duracion = dr["Duracion"] != DBNull.Value ? (int?)dr["Duracion"] : null,
+                            UnidadDuracion = dr["UnidadDuracion"].ToString(),
+                            RangoDosis = dr["RangoDosis"].ToString()
+                        });
                     }
                 }
             }
-
-            if (vacuna == null)
-            {
-                return HttpNotFound();
-            }
-
-            return View(vacuna);
+            return PartialView("_TablaVacunas", lista);
         }
 
-        // GET: Vacunas/Create
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: Vacunas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Vacuna model)
         {
             if (ModelState.IsValid)
             {
-                using (SqlConnection con = new SqlConnection(connectionString))
+                try
                 {
-                    using (SqlCommand cmd = new SqlCommand("VacunasInsert", con))
+                    using (var con = new SqlConnection(connectionString))
+                    using (var cmd = new SqlCommand(@"
+                        INSERT INTO Vacunas 
+                        (Nombre, Descripcion, Lote, Estado, FechaCreacion, FechaActualizacion, Tipo, Frecuencia, UnidadFrecuencia, Duracion, UnidadDuracion, RangoDosis)
+                        VALUES (@Nombre, @Descripcion, @Lote, @Estado, @FechaCreacion, @FechaActualizacion, @Tipo, @Frecuencia, @UnidadFrecuencia, @Duracion, @UnidadDuracion, @RangoDosis)", con))
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                         cmd.Parameters.AddWithValue("@Descripcion", (object)model.Descripcion ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Estado", 1); // Siempre activa al crear
-
+                        cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                        cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@Tipo", model.Tipo);
+                        cmd.Parameters.AddWithValue("@Frecuencia", (object)model.Frecuencia ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@UnidadFrecuencia", (object)model.UnidadFrecuencia ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Duracion", (object)model.Duracion ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@UnidadDuracion", (object)model.UnidadDuracion ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@RangoDosis", (object)model.RangoDosis ?? DBNull.Value);
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
+                    TempData["SwalMascotaEditada"] = "Vacuna/Pastilla registrada correctamente";
+                    return RedirectToAction("Index");
                 }
-                TempData["SwalVacunaCreada"] = model.Nombre;
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["SwalError"] = "Error al registrar: " + ex.Message;
+                }
             }
             return View(model);
         }
-        // GET: Vacunas/Edit/5
+
         public ActionResult Edit(int id)
         {
-            Vacuna vacuna = null;
-
-            using (SqlConnection con = new SqlConnection(connectionString))
+            Vacuna model = null;
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT * FROM Vacunas WHERE Id=@Id", con))
             {
-                using (SqlCommand cmd = new SqlCommand("VacunasSelect", con))
+                cmd.Parameters.AddWithValue("@Id", id);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Id", id);
-
-                    con.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                    if (dr.Read())
                     {
-                        vacuna = new Vacuna
+                        model = new Vacuna
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Nombre = reader["Nombre"].ToString(),
-                            Descripcion = reader["Descripcion"].ToString(),
-                            Lote = reader["Lote"].ToString(),
-                            Estado = Convert.ToChar(reader["Estado"]),
-                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
-                            FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Descripcion = dr["Descripcion"].ToString(),
+                            Lote = dr["Lote"].ToString(),
+                            Estado = dr["Estado"].ToString(),
+                            FechaCreacion = (DateTime)dr["FechaCreacion"],
+                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
+                            Tipo = dr["Tipo"].ToString(),
+                            Frecuencia = dr["Frecuencia"] != DBNull.Value ? (int?)dr["Frecuencia"] : null,
+                            UnidadFrecuencia = dr["UnidadFrecuencia"].ToString(),
+                            Duracion = dr["Duracion"] != DBNull.Value ? (int?)dr["Duracion"] : null,
+                            UnidadDuracion = dr["UnidadDuracion"].ToString(),
+                            RangoDosis = dr["RangoDosis"].ToString()
                         };
                     }
                 }
             }
-
-            if (vacuna == null)
-            {
+            if (model == null)
                 return HttpNotFound();
-            }
-
-            return View(vacuna);
+            return View(model);
         }
 
-        // POST: Vacunas/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Vacuna model)
         {
             if (ModelState.IsValid)
             {
-                using (SqlConnection con = new SqlConnection(connectionString))
+                try
                 {
-                    using (SqlCommand cmd = new SqlCommand("VacunasUpdate", con))
+                    using (var con = new SqlConnection(connectionString))
+                    using (var cmd = new SqlCommand(@"
+                        UPDATE Vacunas SET 
+                            Nombre=@Nombre, Descripcion=@Descripcion, Lote=@Lote, Estado=@Estado, 
+                            FechaActualizacion=@FechaActualizacion, Tipo=@Tipo, 
+                            Frecuencia=@Frecuencia, UnidadFrecuencia=@UnidadFrecuencia, 
+                            Duracion=@Duracion, UnidadDuracion=@UnidadDuracion, RangoDosis=@RangoDosis
+                        WHERE Id=@Id", con))
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@Id", model.Id);
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                         cmd.Parameters.AddWithValue("@Descripcion", (object)model.Descripcion ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Estado", model.Estado);
-
+                        cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@Tipo", model.Tipo);
+                        cmd.Parameters.AddWithValue("@Frecuencia", (object)model.Frecuencia ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@UnidadFrecuencia", (object)model.UnidadFrecuencia ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Duracion", (object)model.Duracion ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@UnidadDuracion", (object)model.UnidadDuracion ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@RangoDosis", (object)model.RangoDosis ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Id", model.Id);
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
+                    TempData["SwalMascotaEditada"] = "Vacuna/Pastilla editada correctamente";
+                    return RedirectToAction("Index");
                 }
-                TempData["SwalVacunaEditada"] = model.Nombre;
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["SwalError"] = "Error al editar: " + ex.Message;
+                }
             }
             return View(model);
         }
 
-       
-
-
-
-      [HttpPost]
-      [ValidateAntiForgeryToken]
-public ActionResult Delete(int id)
+        public ActionResult Details(int id)
         {
-            char estadoActual = '1';
-            string nombreVacuna = "";
-
-            using (SqlConnection con = new SqlConnection(connectionString))
+            Vacuna model = null;
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT * FROM Vacunas WHERE Id=@Id", con))
             {
-                using (SqlCommand cmd = new SqlCommand("VacunasSelect", con))
+                cmd.Parameters.AddWithValue("@Id", id);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Id", id);
-
-                    con.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                    if (dr.Read())
                     {
-                        estadoActual = Convert.ToChar(reader["Estado"]);
-                        nombreVacuna = reader["Nombre"].ToString();
+                        model = new Vacuna
+                        {
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Descripcion = dr["Descripcion"].ToString(),
+                            Lote = dr["Lote"].ToString(),
+                            Estado = dr["Estado"].ToString(),
+                            FechaCreacion = (DateTime)dr["FechaCreacion"],
+                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
+                            Tipo = dr["Tipo"].ToString(),
+                            Frecuencia = dr["Frecuencia"] != DBNull.Value ? (int?)dr["Frecuencia"] : null,
+                            UnidadFrecuencia = dr["UnidadFrecuencia"].ToString(),
+                            Duracion = dr["Duracion"] != DBNull.Value ? (int?)dr["Duracion"] : null,
+                            UnidadDuracion = dr["UnidadDuracion"].ToString(),
+                            RangoDosis = dr["RangoDosis"].ToString()
+                        };
                     }
                 }
             }
+            if (model == null)
+                return HttpNotFound();
+            return View(model);
+        }
 
-            char nuevoEstado = estadoActual == '1' ? '0' : '1';
-
-            using (SqlConnection con = new SqlConnection(connectionString))
+        // ACTIVAR/DESACTIVAR (en vez de delete)
+        [HttpPost]
+        public ActionResult CambiarEstado(int id, string nuevoEstado)
+        {
+            try
             {
-                using (SqlCommand cmd = new SqlCommand("VacunasDeactivate", con))
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("UPDATE Vacunas SET Estado=@Estado, FechaActualizacion=@FechaActualizacion WHERE Id=@Id", con))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Estado", nuevoEstado);
+                    cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
                     cmd.Parameters.AddWithValue("@Id", id);
-                    cmd.Parameters.AddWithValue("@NuevoEstado", nuevoEstado);
                     con.Open();
                     cmd.ExecuteNonQuery();
                 }
+                TempData["SwalMascotaEditada"] = "Estado actualizado correctamente";
             }
-
-            TempData["SwalVacuna"] = nombreVacuna;
-            TempData["SwalAccion"] = nuevoEstado == '1' ? "activó" : "desactivó";
+            catch (Exception ex)
+            {
+                TempData["SwalError"] = "Error al actualizar estado: " + ex.Message;
+            }
             return RedirectToAction("Index");
         }
     }
-    }
+}

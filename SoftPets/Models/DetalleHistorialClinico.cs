@@ -26,6 +26,11 @@ namespace SoftPets.Models
         [Display(Name = "Próxima fecha de Consulta")]
         public DateTime? FechaFuturaConsulta { get; set; }
 
+        [Display(Name = "Estado")]
+        [StringLength(20)]
+        public string Estado { get; set; }
+
+
         // Relaciones
         [ForeignKey("HistorialClinicoId")]
         public virtual HistorialClinico HistorialClinico { get; set; }

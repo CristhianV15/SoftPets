@@ -68,15 +68,38 @@ namespace SoftPets.Controllers
             {
                 HistorialClinicoId = historialClinicoId,
                 FechaConsulta = DateTime.Now.Date,
-                FechaFuturaConsulta = DateTime.Now.Date.AddDays(7)
+                FechaFuturaConsulta = DateTime.Now.Date.AddDays(7),
+                Estado = "Pendiente"
             };
             return View(model);
+        }
+
+
+        public ActionResult MarcarConsultaRealizada(int id)
+        {
+            try
+            {
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(@"UPDATE DetallesHistorialesClinicos SET Estado='Realizada' WHERE Id=@Id", con))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                return Json(new { success = true });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(DetalleHistorialClinico model)
         {
+            if (string.IsNullOrEmpty(model.Estado))
+                model.Estado = "Pendiente";
             if (ModelState.IsValid)
             {
                 try

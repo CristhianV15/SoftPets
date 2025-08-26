@@ -23,10 +23,8 @@
                     @Html.LabelFor(m => m.Indicacion, htmlAttributes: new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.Indicacion, new { @class = "form-control", maxlength = 200, id = "Indicacion" })
                 </div>
-                <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.Estado, htmlAttributes: new { @class = "form-label" })
-                    @Html.TextBoxFor(m => m.Estado, new { @class = "form-control", maxlength = 20, id = "Estado" })
-                </div>
+                @Html.HiddenFor(m => m.Estado)
+
                 <div class="form-group mt-3">
                     <input type="submit" value="Guardar Cambios" class="btn btn-unificado" />
                     @Html.ActionLink("Volver", "Index", new { detalleHistorialClinicoId = detalleHistorialClinicoId }, new { @class = "btn btn-secondary ms-2" })

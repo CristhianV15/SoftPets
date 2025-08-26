@@ -10,8 +10,8 @@
         <h2 class="text-center mb-4">Historial de Consultas de mis Mascotas</h2>
         <div class="text-center mb-3">
             <button class="btn btn-unificado btn-sm me-2" onclick="filtrarConsultas('proceso')">Consultas en Proceso</button>
-            <button class="btn btn-unificado btn-sm" onclick="filtrarConsultas('finalizado')">Consultas Finalizadas</button>
-            <button class="btn btn-secondary btn-sm ms-2" onclick="filtrarConsultas('')">Todas</button>
+            <button class="btn btn-unificado btn-sm me-2" onclick="filtrarConsultas('finalizado')">Consultas Finalizadas</button>
+            <button class="btn btn-unificado btn-sm" onclick="filtrarConsultas('')">Todas</button>
         </div>
         <p class="text-center">
             @Html.ActionLink("Registrar Consulta", "Create", new { duenioId = ViewBag.DuenioId, tipo = "Consulta" }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
@@ -28,7 +28,8 @@
                 </tr>
                 @foreach (var item in Model)
                 {
-                    <tr>
+                    var estado = item.FechaFinTratamiento.HasValue ? "finalizado" : "proceso";
+                    <tr data-estado="@estado">
                         <td>@item.NombreMascota</td>
                         <td>@item.Motivo</td>
                         <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
@@ -36,43 +37,100 @@
                         <td>@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")</td>
                         <td>
                             <div class="acciones-btn-group" style="margin-bottom:6px;">
-                                <a href="@Url.Action("Edit", new { id = item.Id })"
-                                   class="btn btn-unificado btn-sm @(item.FechaFinTratamiento.HasValue ? "disabled" : "")"
-                                   title="Editar"
-                                   @(item.FechaFinTratamiento.HasValue ? "tabindex='-1' aria-disabled='true'" : "")>
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
+                                @{
+                                    var isFinalizado = item.FechaFinTratamiento.HasValue;
+                                    var tooltip = isFinalizado ? "Edición deshabilitada: consulta finalizada" : "Editar";
+                                }
+                                @if (isFinalizado)
+                                {
+                                    <span class="btn btn-unificado btn-sm disabled"
+                                          title="@tooltip"
+                                          style="cursor: not-allowed; display: inline-block;"
+                                          tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Edit", new { id = item.Id })"
+                                       class="btn btn-unificado btn-sm"
+                                       title="@tooltip">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
                             </div>
                             <div class="acciones-btn-group">
                                 <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Diagnóstico">
                                     <i class="bi bi-clipboard2-pulse"></i>
                                 </a>
                             </div>
+                            @if (!item.FechaFinTratamiento.HasValue)
+                            {
+                                <div class="acciones-btn-group"  style="margin-top:8px;">
+                                    <button class="btn btn-unificado btn-sm" title="Cerrar Consulta" onclick="cerrarHistorial(@item.Id)">
+                                        <i class="bi bi-check-circle" style="color:#22c55e;"></i>
+                                    </button>
+                                </div>
+                            }
                         </td>
                     </tr>
                 }
             </table>
         </div>
-        </div>
-</div>
-
-<div class="modal fade" id="detallesHistorialClinicoModal" tabindex="-1" aria-labelledby="detallesHistorialClinicoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detallesHistorialClinicoModalLabel">Detalles de Historial Clínico</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body" id="detallesHistorialClinicoBody">
-                <!-- Aquí se llenará dinámicamente -->
-            </div>
-        </div>
     </div>
 </div>
 
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function filtrarConsultas(estado) {
+    $("#tablaConsultas tr[data-estado]").each(function () {
+        var fila = $(this);
+        if (estado === "") {
+            fila.show();
+        } else if (fila.data("estado") === estado) {
+            fila.show();
+        } else {
+            fila.hide();
+        }
+    });
+}
+
+function cerrarHistorial(id) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea cerrar esta consulta?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cerrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('@Url.Action("CerrarHistorial", "HistorialClinico")', { id: id }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Consulta cerrada!',
+                        showConfirmButton: false,
+                        timer: 1200
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cerrar la consulta.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        }
+    });
+}
+    </script>
     @if (TempData["SwalMascotaEditada"] != null)
     {
         <text>
@@ -97,16 +155,3 @@
         </text>
     }
 }
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        function filtrarConsultas(estado) {
-            $.get(window.location.pathname, { estado: estado }, function (html) {
-                // Extrae solo el contenido de #tablaConsultas del HTML devuelto
-                var newTable = $(html).find("#tablaConsultas").html();
-                $("#tablaConsultas").html(newTable);
-            });
-        }
-    </script>

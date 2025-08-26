@@ -1,19 +1,20 @@
 ﻿@model SoftPets.Models.Vacunacion
 @{
-    ViewBag.Title = "Registrar Vacunación/Pastilla";
+    ViewBag.Title = "Editar Vacunación/Pastilla";
     Layout = "~/Views/Shared/_Layout.cshtml";
     int mascotaId = ViewBag.MascotaId;
     var vacunas = ViewBag.Vacunas as List<SelectListItem>;
 }
 
 <div class="container" style="max-width:600px;">
-    <h2 class="mb-4">Registrar Vacunación/Pastilla</h2>
+    <h2 class="mb-4">Editar Vacunación/Pastilla</h2>
     <div class="card shadow-sm">
         <div class="card-body">
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
-                @Html.HiddenFor(m => m.MascotaId, new { Value = mascotaId })
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.MascotaId)
                 <div id="errorMsg" class="error-message"></div>
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.VacunaId, htmlAttributes: new { @class = "form-label" })
@@ -36,7 +37,7 @@
                     @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control", maxlength = 255, rows = 2 })
                 </div>
                 <div class="form-group mt-3">
-                    <input type="submit" value="Registrar" class="btn btn-unificado" />
+                    <input type="submit" value="Guardar Cambios" class="btn btn-unificado" />
                     @Html.ActionLink("Volver", "Index", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
                 </div>
             }

@@ -201,5 +201,26 @@ namespace SoftPets.Controllers
             }
             return RedirectToAction("Index", new { detalleHistorialClinicoId = detalleHistorialClinicoId });
         }
+
+        [HttpPost]
+        public ActionResult MarcarIndicacionRealizada(int id)
+        {
+            try
+            {
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(@"UPDATE IndicacionesHistorialesClinicos SET Estado='Realizada' WHERE Id=@Id", con))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                return Json(new { success = true });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
+
     }
 }

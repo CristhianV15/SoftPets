@@ -1,0 +1,72 @@
+﻿@model IEnumerable<SoftPets.Models.Vacuna>
+<div id="tablaVacunas">
+    <table class="table table-custom">
+        <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Frecuencia</th>
+            <th>Duración</th>
+            <th>Rango de Dosis</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nombre</td>
+                <td>@item.Tipo</td>
+                <td>
+                    @if (item.Frecuencia.HasValue)
+                    {
+                        @($"{item.Frecuencia} {item.UnidadFrecuencia}")
+                    }
+                </td>
+                <td>
+                    @if (item.Duracion.HasValue)
+                    {
+                        @($"{item.Duracion} {item.UnidadDuracion}")
+                    }
+                </td>
+                <td>@item.RangoDosis</td>
+                <td>
+                    @if (item.Estado == "Activo")
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactivo</span>
+                    }
+                </td>
+                <td>
+                    <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    
+                    @if (item.Estado == "Activo")
+                    {
+                        <form action="@Url.Action("CambiarEstado", "Vacunas")" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="nuevoEstado" value="Inactivo" />
+                            <button type="submit" class="btn btn-danger btn-sm" title="Desactivar">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form action="@Url.Action("CambiarEstado", "Vacunas")" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="nuevoEstado" value="Activo" />
+                            <button type="submit" class="btn btn-success btn-sm" title="Activar">
+                                <i class="bi bi-check-circle"></i>
+                            </button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </table>
+</div>

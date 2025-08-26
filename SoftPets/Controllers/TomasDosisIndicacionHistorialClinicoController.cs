@@ -208,10 +208,10 @@ namespace SoftPets.Controllers
         {
             try
             {
-                int dosisId = 0;
+                int dosisId = 0, indicacionId = 0, detalleId = 0, historialId = 0;
                 using (var con = new SqlConnection(connectionString))
                 {
-                    // Marcar la toma como realizada y guardar observación, obtener el ID de la dosis
+                    // 1. Marcar la toma como realizada y guardar observación, obtener el ID de la dosis
                     using (var cmd = new SqlCommand(@"
                 UPDATE TomasDosisIndicacionHistorialClinico 
                 SET Estado='Realizada', Observaciones=@Obs 
@@ -224,7 +224,7 @@ namespace SoftPets.Controllers
                         dosisId = (int)cmd.ExecuteScalar();
                     }
 
-                    // Verificar si todas las tomas de esa dosis están realizadas
+                    // 2. Verificar si todas las tomas de esa dosis están realizadas
                     using (var cmd = new SqlCommand(@"
                 SELECT COUNT(*) 
                 FROM TomasDosisIndicacionHistorialClinico 
@@ -234,14 +234,91 @@ namespace SoftPets.Controllers
                         int pendientes = (int)cmd.ExecuteScalar();
                         if (pendientes == 0)
                         {
-                            // Marcar la dosis como finalizada
+                            // Marcar la dosis como finalizada y obtener el ID de la indicación
                             using (var cmd2 = new SqlCommand(@"
                         UPDATE DosisIndicacionesHistorialesClinicos 
                         SET EstadoAlerta='Realizada' 
+                        OUTPUT INSERTED.IndicacionesHistorialesClinicosId
                         WHERE Id=@DosisId", con))
                             {
                                 cmd2.Parameters.AddWithValue("@DosisId", dosisId);
-                                cmd2.ExecuteNonQuery();
+                                indicacionId = (int)cmd2.ExecuteScalar();
+                            }
+                        }
+                    }
+
+                    // 3. Si todas las dosis de la indicación están realizadas, marcar la indicación como realizada y obtener el detalle
+                    if (indicacionId > 0)
+                    {
+                        using (var cmd = new SqlCommand(@"
+                    SELECT COUNT(*) 
+                    FROM DosisIndicacionesHistorialesClinicos 
+                    WHERE IndicacionesHistorialesClinicosId=@IndicacionId AND EstadoAlerta<>'Realizada'", con))
+                        {
+                            cmd.Parameters.AddWithValue("@IndicacionId", indicacionId);
+                            int pendientes = (int)cmd.ExecuteScalar();
+                            if (pendientes == 0)
+                            {
+                                // Marcar la indicación como realizada y obtener el detalle
+                                using (var cmd2 = new SqlCommand(@"
+                            UPDATE IndicacionesHistorialesClinicos 
+                            SET Estado='Realizada' 
+                            OUTPUT INSERTED.DetallesHistorialesClinicosId
+                            WHERE Id=@IndicacionId", con))
+                                {
+                                    cmd2.Parameters.AddWithValue("@IndicacionId", indicacionId);
+                                    detalleId = (int)cmd2.ExecuteScalar();
+                                }
+                            }
+                        }
+                    }
+
+                    // 4. Si todas las indicaciones del detalle están realizadas, marcar el detalle como realizado y obtener el historial
+                    if (detalleId > 0)
+                    {
+                        using (var cmd = new SqlCommand(@"
+                    SELECT COUNT(*) 
+                    FROM IndicacionesHistorialesClinicos 
+                    WHERE DetallesHistorialesClinicosId=@DetalleId AND Estado<>'Realizada'", con))
+                        {
+                            cmd.Parameters.AddWithValue("@DetalleId", detalleId);
+                            int pendientes = (int)cmd.ExecuteScalar();
+                            if (pendientes == 0)
+                            {
+                                // Marcar el detalle como realizado y obtener el historial
+                                using (var cmd2 = new SqlCommand(@"
+                            UPDATE DetallesHistorialesClinicos 
+                            SET Estado='Realizada' 
+                            OUTPUT INSERTED.HistorialClinicoId
+                            WHERE Id=@DetalleId", con))
+                                {
+                                    cmd2.Parameters.AddWithValue("@DetalleId", detalleId);
+                                    historialId = (int)cmd2.ExecuteScalar();
+                                }
+                            }
+                        }
+                    }
+
+                    // 5. Si todos los detalles del historial están realizados, marcar el historial como finalizado
+                    if (historialId > 0)
+                    {
+                        using (var cmd = new SqlCommand(@"
+                    SELECT COUNT(*) 
+                    FROM DetallesHistorialesClinicos 
+                    WHERE HistorialClinicoId=@HistorialId AND Estado<>'Realizada'", con))
+                        {
+                            cmd.Parameters.AddWithValue("@HistorialId", historialId);
+                            int pendientes = (int)cmd.ExecuteScalar();
+                            if (pendientes == 0)
+                            {
+                                using (var cmd2 = new SqlCommand(@"
+                            UPDATE HistorialesClinicos 
+                            SET Estado='Finalizado' 
+                            WHERE Id=@HistorialId", con))
+                                {
+                                    cmd2.Parameters.AddWithValue("@HistorialId", historialId);
+                                    cmd2.ExecuteNonQuery();
+                                }
                             }
                         }
                     }

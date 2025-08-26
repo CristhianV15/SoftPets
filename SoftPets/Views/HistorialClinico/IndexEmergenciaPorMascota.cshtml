@@ -9,49 +9,73 @@
 <div class="main-content-bg">
     <div class="tabla-container">
         <h2 class="text-center mb-4">Historial de Emergencias de @nombreMascota</h2>
+        <div class="text-center mb-3">
+            <button class="btn btn-unificado btn-sm me-2" onclick="filtrarConsultas('proceso')">Emergencias en Proceso</button>
+            <button class="btn btn-unificado btn-sm me-2" onclick="filtrarConsultas('finalizado')">Emergencias Finalizadas</button>
+            <button class="btn btn-unificado btn-sm" onclick="filtrarConsultas('')">Todas</button>
+        </div>
         <p class="text-center">
             @Html.ActionLink("Registrar Emergencia", "Create", new { mascotaId = mascotaId, tipo = "Emergencia" }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </p>
-        <table class="table table-custom">
-            <tr>
-                <th>Motivo</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Posible Fin</th>
-                <th>Acciones</th>
-            </tr>
-            @foreach (var item in Model)
-            {
+        <div id="tablaConsultas">
+            <table class="table table-custom">
                 <tr>
-                    <td>@item.Motivo</td>
-                    <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
-                    <td>@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")</td>
-                    <td>
-                        <div class="acciones-btn-group" style="margin-bottom:6px;">
-                            @*<button type="button" class="btn btn-unificado btn-sm" title="Detalles"
-                                    onclick="mostrarDetallesHistorialClinico(
-                    '@item.NombreMascota',
-                    '@item.NombreDuenio',
-                    '@item.Tipo',
-                    '@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")',
-                    '@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")',
-                    '@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")',
-                    '@item.Motivo'
-                )">
-                                <i class="bi bi-info-circle"></i>
-                            </button>*@
-                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                        </div>
-                        <div class="acciones-btn-group">
-                            <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Diagnóstico">
-                                <i class="bi bi-clipboard2-pulse"></i>
-                            </a>
-                        </div>
-                    </td>
+                    <th>Motivo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Posible Fin</th>
+                    <th>Fecha Final</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-        </table>
+                @foreach (var item in Model)
+                {
+                    var estado = item.FechaFinTratamiento.HasValue ? "finalizado" : "proceso";
+                    <tr data-estado="@estado">
+                        <td>@item.Motivo</td>
+                        <td>@item.FechaInicioTratamiento.ToString("dd/MM/yyyy")</td>
+                        <td>@item.FechaPosibleFinTratamiento.ToString("dd/MM/yyyy")</td>
+                        <td>@(item.FechaFinTratamiento.HasValue ? item.FechaFinTratamiento.Value.ToString("dd/MM/yyyy") : "-")</td>
+                        <td>
+                            <div class="acciones-btn-group" style="margin-bottom:6px;">
+                                @{
+                                    var isFinalizado = item.FechaFinTratamiento.HasValue;
+                                    var tooltip = isFinalizado ? "Edición deshabilitada: emergencia finalizada" : "Editar";
+                                }
+                                @if (isFinalizado)
+                                {
+                                    <span class="btn btn-unificado btn-sm disabled"
+                                          title="@tooltip"
+                                          style="cursor: not-allowed; display: inline-block;"
+                                          tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Edit", new { id = item.Id })"
+                                       class="btn btn-unificado btn-sm"
+                                       title="@tooltip">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
+                            </div>
+                            <div class="acciones-btn-group">
+                                <a href="@Url.Action("Index", "DetalleHistorialClinico", new { historialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Diagnóstico">
+                                    <i class="bi bi-clipboard2-pulse"></i>
+                                </a>
+                            </div>
+                            @if (!item.FechaFinTratamiento.HasValue)
+                            {
+                                <div class="acciones-btn-group" style="margin-top:8px;">
+                                    <button class="btn btn-unificado btn-sm" title="Cerrar Emergencia" onclick="cerrarHistorial(@item.Id)">
+                                        <i class="bi bi-check-circle" style="color:#22c55e;"></i>
+                                    </button>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
     </div>
 </div>
 <div class="modal fade" id="detallesHistorialClinicoModal" tabindex="-1" aria-labelledby="detallesHistorialClinicoModalLabel" aria-hidden="true">
@@ -68,9 +92,57 @@
     </div>
 </div>
 
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function filtrarConsultas(estado) {
+    $("#tablaConsultas tr[data-estado]").each(function () {
+        var fila = $(this);
+        if (estado === "") {
+            fila.show();
+        } else if (fila.data("estado") === estado) {
+            fila.show();
+        } else {
+            fila.hide();
+        }
+    });
+}
+
+function cerrarHistorial(id) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea cerrar esta emergencia?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cerrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('@Url.Action("CerrarHistorial", "HistorialClinico")', { id: id }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Emergencia cerrada!',
+                        showConfirmButton: false,
+                        timer: 1200
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cerrar la emergencia.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        }
+    });
+}
+    </script>
     @if (TempData["SwalMascotaEditada"] != null)
     {
         <text>
@@ -95,21 +167,3 @@
         </text>
     }
 }
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function mostrarDetallesHistorialClinico(nombreMascota, nombreDuenio, tipo, fechaInicio, fechaPosibleFin, fechaFin, motivo) {
-        var html = '';
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Mascota:</div><div class="col-7 modal-details-value">${nombreMascota}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Dueño:</div><div class="col-7 modal-details-value">${nombreDuenio}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Tipo:</div><div class="col-7 modal-details-value">${tipo}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Inicio:</div><div class="col-7 modal-details-value">${fechaInicio}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Posible Fin:</div><div class="col-7 modal-details-value">${fechaPosibleFin}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Fecha Fin:</div><div class="col-7 modal-details-value">${fechaFin}</div></div>`;
-        html += `<div class="row mb-2"><div class="col-5 modal-details-label">Motivo:</div><div class="col-7 modal-details-value">${motivo}</div></div>`;
-        document.getElementById('detallesHistorialClinicoBody').innerHTML = html;
-        var modal = new bootstrap.Modal(document.getElementById('detallesHistorialClinicoModal'));
-        modal.show();
-    }
-</script>
-
-

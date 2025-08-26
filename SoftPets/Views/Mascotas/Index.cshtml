@@ -101,8 +101,11 @@
                             </a>
                         </div>
                         <div class="acciones-btn-group">
-                            <a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunas">
+                            @*<a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunas">
                                 <i class="bi bi-capsule"></i>
+                            </a>*@
+                            <a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunaciones/Pastillas">
+                                <i class="bi bi-shield-plus"></i>
                             </a>
                             <a href="@Url.Action("Index", "Tendencias", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Tendencias">
                                 <i class="bi bi-bar-chart-line"></i>

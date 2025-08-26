@@ -11,28 +11,33 @@ namespace SoftPets.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El nombre de la vacuna es obligatorio.")]
-        [StringLength(100)]
+        [Required, StringLength(100)]
         public string Nombre { get; set; }
 
-        [Display(Name = "Descripción")]
         [StringLength(255)]
         public string Descripcion { get; set; }
 
         [StringLength(50)]
         public string Lote { get; set; }
 
-        [Required]
-        public char Estado { get; set; } // '1' = Activo, '0' = Inactivo
+        [Required, StringLength(20)]
+        public string Estado { get; set; } // 'Activo', 'Inactivo'
 
-        [Display(Name = "F. Creación")]
         [Required]
         public DateTime FechaCreacion { get; set; }
 
-        [Display(Name = "F. Actualización")]
         public DateTime? FechaActualizacion { get; set; }
 
-        // Relaciones
-        public virtual ICollection<Vacunacion> Vacunaciones { get; set; }
+        [Required, StringLength(20)]
+        public string Tipo { get; set; } // 'Vacuna' o 'Pastilla'
+
+        public int? Frecuencia { get; set; }
+        [StringLength(10)]
+        public string UnidadFrecuencia { get; set; }
+        public int? Duracion { get; set; }
+        [StringLength(10)]
+        public string UnidadDuracion { get; set; }
+        [StringLength(50)]
+        public string RangoDosis { get; set; }
     }
 }

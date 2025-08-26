@@ -97,6 +97,8 @@ namespace SoftPets.Controllers
             return View(lista);
         }
 
+
+
         public ActionResult IndexEmergenciaPorMascota(int mascotaId, string estado = "")
         {
             var lista = new List<HistorialClinico>();
@@ -426,8 +428,26 @@ namespace SoftPets.Controllers
                 return HttpNotFound();
             return View(model);
         }
-
-
+        [HttpPost]
+        public ActionResult CerrarHistorial(int id)
+        {
+            try
+            {
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(@"UPDATE HistorialesClinicos SET FechaFinTratamiento=@FechaFin WHERE Id=@Id", con))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.Parameters.AddWithValue("@FechaFin", DateTime.Now);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                return Json(new { success = true });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
 
         // Helper para obtener nombre de la mascota
         private string ObtenerNombreMascota(int mascotaId)

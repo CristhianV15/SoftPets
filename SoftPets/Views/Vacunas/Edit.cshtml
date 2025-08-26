@@ -1,75 +1,61 @@
 ﻿@model SoftPets.Models.Vacuna
 @{
-    ViewBag.Title = "Editar Vacuna";
+    ViewBag.Title = "Editar Vacuna/Pastilla";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="text-center mb-4">Editar Vacuna</h2>
-
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "vacunaEditForm", @class = "form-horizontal" }))
-{
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(m => m.Id)
-    <div id="errorMsg" class="error-message"></div>
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
-    </div>
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Descripcion, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Descripcion, new { @class = "form-control", maxlength = 255, id = "Descripcion" })
-    </div>
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Lote, new { @class = "form-label" })
-        @Html.TextBoxFor(m => m.Lote, new { @class = "form-control", maxlength = 50, id = "Lote" })
-    </div>
-    <div class="form-group mb-3" style="display:none;">
-        @Html.LabelFor(m => m.Estado, new { @class = "form-label" })
-        @Html.DropDownListFor(m => m.Estado, new List<SelectListItem> {
-                new SelectListItem { Text = "Activo", Value = "1" },
-                new SelectListItem { Text = "Inactivo", Value = "0" }
-            }, "Seleccione el estado", new { @class = "form-control combo-destacado", id = "Estado" })
-    </div>
-    <div class="form-group mt-3 text-center">
-        <input type="submit" value="Guardar" class="btn btn-unificado" />
-        @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-secondary ms-2" })
-    </div>
-}
-
-@section Scripts {
-    <script>
-        document.getElementById('vacunaEditForm').onsubmit = function (e) {
-            var nombre = document.getElementById('Nombre').value.trim();
-            var descripcion = document.getElementById('Descripcion').value.trim();
-            var lote = document.getElementById('Lote').value.trim();
-            var estado = document.getElementById('Estado').value;
-            var errorMsg = document.getElementById('errorMsg');
-            errorMsg.style.display = 'none';
-            errorMsg.innerText = '';
-            if (!nombre) {
-                errorMsg.innerText = "El nombre de la vacuna es obligatorio.";
-                errorMsg.style.display = 'block';
-                e.preventDefault();
-                return false;
+<div class="container" style="max-width:600px;">
+    <h2 class="mb-4">Editar Vacuna/Pastilla</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Id)
+                <div id="errorMsg" class="error-message"></div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Nombre, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100 })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Tipo, htmlAttributes: new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.Tipo, new SelectList(new[] { "Vacuna", "Pastilla" }, Model.Tipo), "-- Seleccione --", new { @class = "form-select" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Descripcion, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control", maxlength = 255, rows = 2 })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Lote, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Lote, new { @class = "form-control", maxlength = 50 })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Frecuencia, htmlAttributes: new { @class = "form-label" })
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Frecuencia, new { @class = "form-control", type = "number", min = "1", placeholder = "Frecuencia" })
+                        @Html.DropDownListFor(m => m.UnidadFrecuencia, new SelectList(new[] { "Día", "Semana", "Mes", "Año" }, Model.UnidadFrecuencia), "-- Unidad --", new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Duracion, htmlAttributes: new { @class = "form-label" })
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Duracion, new { @class = "form-control", type = "number", min = "1", placeholder = "Duración" })
+                        @Html.DropDownListFor(m => m.UnidadDuracion, new SelectList(new[] { "Mes", "Año" }, Model.UnidadDuracion), "-- Unidad --", new { @class = "form-select" })
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.RangoDosis, htmlAttributes: new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.RangoDosis, new { @class = "form-control", maxlength = 50, placeholder = "Ej: 5-10mg/kg" })
+                </div>
+                <div class="form-group mb-3">
+                    @Html.LabelFor(m => m.Estado, htmlAttributes: new { @class = "form-label" })
+                    @Html.DropDownListFor(m => m.Estado, new SelectList(new[] { "Activo", "Inactivo" }, Model.Estado), "-- Seleccione --", new { @class = "form-select" })
+                </div>
+                <div class="form-group mt-3">
+                    <input type="submit" value="Guardar Cambios" class="btn btn-unificado" />
+                    @Html.ActionLink("Volver", "Index", null, new { @class = "btn btn-secondary ms-2" })
+                </div>
             }
-            if (!descripcion) {
-                errorMsg.innerText = "La descripción es obligatoria.";
-                errorMsg.style.display = 'block';
-                e.preventDefault();
-                return false;
-            }
-            if (!lote) {
-                errorMsg.innerText = "El lote es obligatorio.";
-                errorMsg.style.display = 'block';
-                e.preventDefault();
-                return false;
-            }
-            if (!estado) {
-                errorMsg.innerText = "Debe seleccionar el estado.";
-                errorMsg.style.display = 'block';
-                e.preventDefault();
-                return false;
-            }
-        };
-    </script>
-}
+        </div>
+    </div>
+</div>

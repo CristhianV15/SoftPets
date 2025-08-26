@@ -29,17 +29,38 @@
                 <tr>
                     <td>@(hayMedicamento ? item.Medicamento : "--")</td>
                     <td class="descripcion-multilinea">@item.Indicacion</td>
-                    <td>@item.Estado</td>
                     <td>
-                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a href="@Url.Action("Index", "DosisIndicacionHistorialClinico", new { IndicacionesHistorialesClinicosId = item.Id })"
-                           class="btn btn-unificado btn-sm @(hayMedicamento ? "" : "disabled")"
-                           title="Ver Dosis"
-                           @(hayMedicamento ? "" : "tabindex='-1' aria-disabled='true'")>
-                            <i class="bi bi-clock-history"></i>
-                        </a>
+                        @if (string.IsNullOrEmpty(item.Estado) || item.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Realizada</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </div>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <a href="@Url.Action("Index", "DosisIndicacionHistorialClinico", new { IndicacionesHistorialesClinicosId = item.Id })"
+                               class="btn btn-unificado btn-sm @(hayMedicamento ? "" : "disabled")"
+                               title="Ver Dosis"
+                               @(hayMedicamento ? "" : "tabindex='-1' aria-disabled='true'")>
+                                <i class="bi bi-clock-history"></i>
+                            </a>
+                        </div>
+                        @if (!hayMedicamento && (string.IsNullOrEmpty(item.Estado) || item.Estado == "Pendiente"))
+                        {
+                            <div class="acciones-btn-group" style="margin-top:8px;">
+                                <button class="btn btn-unificado btn-sm" title="Marcar como Realizada" onclick="marcarIndicacionRealizada(@item.Id)">
+                                    <i class="bi bi-check-circle" style="color:#22c55e;"></i>
+                                </button>
+                            </div>
+                        }
                     </td>
                 </tr>
             }
@@ -49,6 +70,41 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function marcarIndicacionRealizada(id) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: '¿Desea marcar esta indicación como realizada?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, marcar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('@Url.Action("MarcarIndicacionRealizada", "IndicacionHistorialClinico")', { id: id }, function (res) {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Indicación marcada como realizada!',
+                        showConfirmButton: false,
+                        timer: 1200
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo marcar la indicación.',
+                        showConfirmButton: true
+                    });
+                }
+            });
+        }
+    });
+}
+    </script>
     @if (TempData["SwalMascotaEditada"] != null)
     {
         <text>

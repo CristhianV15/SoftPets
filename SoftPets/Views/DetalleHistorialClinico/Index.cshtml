@@ -16,6 +16,7 @@
                 <th>Fecha Consulta</th>
                 <th>Observaciones</th>
                 <th>Próxima fecha de consulta</th>
+                @*<th>Estado</th>*@
                 <th>Acciones</th>
             </tr>
             @foreach (var item in Model)
@@ -23,15 +24,27 @@
                 <tr>
                     <td>@item.FechaConsulta.ToString("dd/MM/yyyy")</td>
                     <td class="descripcion-multilinea">@item.Recomendaciones</td>
-                    <td>@(item.FechaFuturaConsulta.HasValue ? item.FechaFuturaConsulta.Value.ToString("dd/MM/yyyy") : "")</td>
+                    <td>@(item.FechaFuturaConsulta.HasValue ? item.FechaFuturaConsulta.Value.ToString("dd/MM/yyyy") : "-")</td>
+                    @*<td>
+                        @if (string.IsNullOrEmpty(item.Estado) || item.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Realizada</span>
+                        }
+                    </td>*@
                     <td>
-
-                        <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a href="@Url.Action("Index", "IndicacionHistorialClinico", new { detalleHistorialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Tratamiento">
-                            <i class="bi bi-capsule"></i>
-                        </a>
+                        <div class="acciones-btn-group" style="margin-bottom:6px;">
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="@Url.Action("Index", "IndicacionHistorialClinico", new { detalleHistorialClinicoId = item.Id })" class="btn btn-unificado btn-sm" title="Ver Tratamiento">
+                                <i class="bi bi-capsule"></i>
+                            </a>
+                        </div>
+                        <!-- NO hay botón de "Marcar como realizada" aquí -->
                     </td>
                 </tr>
             }
