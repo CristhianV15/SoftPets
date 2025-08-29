@@ -109,7 +109,7 @@ namespace SoftPets.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Vacunacion model, int? DosisYaAplicadas)
+        public ActionResult Create(Vacunacion model, int? DosisYaAplicadas, DateTime? FechaUltimaDosis)
         {
             if (string.IsNullOrEmpty(model.Estado))
                 model.Estado = "Aplicada";
@@ -139,7 +139,6 @@ namespace SoftPets.Controllers
                         }
                     }
 
-                    // Calcular el total de dosis del esquema
                     int totalDosis = 0;
                     if (frecuencia.HasValue && duracion.HasValue && !string.IsNullOrEmpty(unidadFrecuencia) && !string.IsNullOrEmpty(unidadDuracion))
                     {
@@ -160,6 +159,31 @@ namespace SoftPets.Controllers
 
                     int dosisAplicadasPrevias = DosisYaAplicadas ?? 0;
                     int dosisActual = dosisAplicadasPrevias + 1;
+
+                    // Insertar los registros históricos si corresponde
+                    if (dosisAplicadasPrevias > 0 && frecuencia.HasValue && !string.IsNullOrEmpty(unidadFrecuencia))
+                    {
+                        DateTime fechaBase = FechaUltimaDosis ?? model.FechaAplicada ?? DateTime.Now;
+                        for (int i = dosisAplicadasPrevias; i >= 1; i--)
+                        {
+                            DateTime fechaHistorica = fechaBase.AddMonths(-frecuencia.Value * i); // Ajusta según unidadFrecuencia
+                            using (var con = new SqlConnection(connectionString))
+                            using (var cmd = new SqlCommand(@"
+                        INSERT INTO Vacunaciones 
+                        (MascotaId, VacunaId, Estado, FechaAplicada, FechaCreacion, FechaActualizacion)
+                        VALUES (@MascotaId, @VacunaId, @Estado, @FechaAplicada, @FechaCreacion, @FechaActualizacion)", con))
+                            {
+                                cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
+                                cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
+                                cmd.Parameters.AddWithValue("@Estado", "Aplicada");
+                                cmd.Parameters.AddWithValue("@FechaAplicada", fechaHistorica);
+                                cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
+                                cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                                con.Open();
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
 
                     // Insertar la vacunación aplicada (sin FechaProgramada)
                     using (var con = new SqlConnection(connectionString))
@@ -266,11 +290,71 @@ namespace SoftPets.Controllers
                 model.Estado = "Aplicada";
             if (model.FechaCreacion == default(DateTime))
                 model.FechaCreacion = DateTime.Now;
-
+            if (model.Estado == "Pendiente" && model.FechaAplicada.HasValue)
+                model.Estado = "Aplicada";
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Si el registro estaba pendiente y ahora se marca como aplicada, crea la próxima pendiente si corresponde
+                    int? frecuencia = null, duracion = null;
+                    string unidadFrecuencia = null, unidadDuracion = null;
+                    using (var con = new SqlConnection(connectionString))
+                    using (var cmd = new SqlCommand("SELECT Frecuencia, UnidadFrecuencia, Duracion, UnidadDuracion FROM Vacunas WHERE Id=@Id", con))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", model.VacunaId);
+                        con.Open();
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                frecuencia = dr["Frecuencia"] != DBNull.Value ? (int?)dr["Frecuencia"] : null;
+                                unidadFrecuencia = dr["UnidadFrecuencia"].ToString();
+                                duracion = dr["Duracion"] != DBNull.Value ? (int?)dr["Duracion"] : null;
+                                unidadDuracion = dr["UnidadDuracion"].ToString();
+                            }
+                        }
+                    }
+
+                    int totalDosis = 0;
+                    if (frecuencia.HasValue && duracion.HasValue && !string.IsNullOrEmpty(unidadFrecuencia) && !string.IsNullOrEmpty(unidadDuracion))
+                    {
+                        if (unidadFrecuencia == "Mes" && unidadDuracion == "Año")
+                            totalDosis = duracion.Value * 12 / frecuencia.Value;
+                        else if (unidadFrecuencia == "Mes" && unidadDuracion == "Mes")
+                            totalDosis = duracion.Value / frecuencia.Value;
+                        else if (unidadFrecuencia == "Año" && unidadDuracion == "Año")
+                            totalDosis = duracion.Value / frecuencia.Value;
+                        else if (unidadFrecuencia == "Semana" && unidadDuracion == "Mes")
+                            totalDosis = (duracion.Value * 4) / frecuencia.Value;
+                        else if (unidadFrecuencia == "Día" && unidadDuracion == "Mes")
+                            totalDosis = (duracion.Value * 30) / frecuencia.Value;
+                        else
+                            totalDosis = duracion.Value;
+                        if (totalDosis < 1) totalDosis = 1;
+                    }
+
+                    // Contar cuántas dosis aplicadas hay para esta mascota y vacuna (después de editar)
+                    int aplicadas = 0;
+                    DateTime? ultimaFechaAplicada = model.FechaAplicada;
+                    using (var con = new SqlConnection(connectionString))
+                    using (var cmd = new SqlCommand("SELECT COUNT(*), MAX(FechaAplicada) FROM Vacunaciones WHERE MascotaId=@MascotaId AND VacunaId=@VacunaId AND Estado='Aplicada'", con))
+                    {
+                        cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
+                        cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
+                        con.Open();
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                aplicadas = (dr.IsDBNull(0) ? 0 : dr.GetInt32(0)) + 1; // + 1 de la actual 
+                                if (!dr.IsDBNull(1))
+                                    ultimaFechaAplicada = dr.GetDateTime(1);
+                            }
+                        }
+                    }
+
+                    // Actualizar el registro editado
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"
                 UPDATE Vacunaciones SET 
@@ -290,6 +374,31 @@ namespace SoftPets.Controllers
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
+
+                    // Si el registro estaba pendiente y ahora se marca como aplicada, crea la próxima pendiente si corresponde
+                    if (model.Estado == "Aplicada" && frecuencia.HasValue && !string.IsNullOrEmpty(unidadFrecuencia) && (totalDosis == 0 || aplicadas < totalDosis))
+                    {
+                        DateTime fechaProx = ultimaFechaAplicada.HasValue
+                            ? CalcularProximaFecha(ultimaFechaAplicada.Value, frecuencia.Value, unidadFrecuencia).Value
+                            : DateTime.Now;
+
+                        using (var con = new SqlConnection(connectionString))
+                        using (var cmd = new SqlCommand(@"
+                    INSERT INTO Vacunaciones 
+                    (MascotaId, VacunaId, Estado, FechaProgramada, FechaCreacion, FechaActualizacion)
+                    VALUES (@MascotaId, @VacunaId, @Estado, @FechaProgramada, @FechaCreacion, @FechaActualizacion)", con))
+                        {
+                            cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
+                            cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
+                            cmd.Parameters.AddWithValue("@Estado", "Pendiente");
+                            cmd.Parameters.AddWithValue("@FechaProgramada", fechaProx);
+                            cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                            con.Open();
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
                     TempData["SwalMascotaEditada"] = "Vacunación editada correctamente";
                     return RedirectToAction("Index", new { mascotaId = model.MascotaId });
                 }
@@ -338,5 +447,28 @@ namespace SoftPets.Controllers
                 default: return null;
             }
         }
+
+        [HttpGet]
+        public JsonResult ObtenerFrecuenciaUnidad(int vacunaId)
+        {
+            int frecuencia = 0;
+            string unidad = "";
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT Frecuencia, UnidadFrecuencia FROM Vacunas WHERE Id=@Id", con))
+            {
+                cmd.Parameters.AddWithValue("@Id", vacunaId);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        frecuencia = dr["Frecuencia"] != DBNull.Value ? Convert.ToInt32(dr["Frecuencia"]) : 0;
+                        unidad = dr["UnidadFrecuencia"].ToString();
+                    }
+                }
+            }
+            return Json(new { frecuencia = frecuencia, unidad = unidad }, JsonRequestBehavior.AllowGet);
+        }
+
     }
 }

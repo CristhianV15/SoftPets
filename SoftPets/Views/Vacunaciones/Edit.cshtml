@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     int mascotaId = ViewBag.MascotaId;
     var vacunas = ViewBag.Vacunas as List<SelectListItem>;
+    var vacunaNombre = vacunas.FirstOrDefault(v => v.Value == Model.VacunaId.ToString())?.Text ?? "";
 }
 
 <div class="container" style="max-width:600px;">
@@ -25,11 +26,12 @@
                 @Html.HiddenFor(m => m.Id)
                 @Html.HiddenFor(m => m.MascotaId)
                 @Html.HiddenFor(m => m.Estado)
-                <div id="errorMsg" class="error-message"></div>
-                <div class="form-group mb-3">
-                    @Html.Label("Vacuna/Pastilla", htmlAttributes: new { @class = "form-label" })
-                    @Html.DropDownListFor(m => m.VacunaId, vacunas, "-- Seleccione --", new { @class = "form-select", id = "VacunaId" })
-                </div>
+                @Html.HiddenFor(m => m.FechaProgramada) <!-- Mantén la fecha programada para el historial -->
+        <div class="form-group mb-3">
+            @Html.Label("Vacuna/Pastilla", htmlAttributes: new { @class = "form-label" })
+            <input type="text" class="form-control" value="@vacunaNombre" readonly style="background:#e9ecef;" />
+            @Html.HiddenFor(m => m.VacunaId) 
+        </div>
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.DosisAplicada, htmlAttributes: new { @class = "form-label" })
                     @Html.TextBoxFor(m => m.DosisAplicada, new { @class = "form-control", maxlength = 50 })
@@ -46,6 +48,10 @@
                     @Html.LabelFor(m => m.Observaciones, htmlAttributes: new { @class = "form-label" })
                     @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control", maxlength = 255, rows = 2 })
                 </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Fecha programada de esta dosis</label>
+                    <input type="date" class="form-control" value="@(Model.FechaProgramada.HasValue ? Model.FechaProgramada.Value.ToString("yyyy-MM-dd") : "")" readonly style="background:#e9ecef;" />
+                </div>
                 <div class="form-group mt-3">
                     <input type="submit" value="Guardar Cambios" class="btn btn-unificado" />
                     @Html.ActionLink("Volver", "Index", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
@@ -54,17 +60,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#VacunaId').select2({
-                placeholder: "Buscar vacuna o pastilla...",
-                allowClear: true
-            });
-        });
-    </script>
-}
