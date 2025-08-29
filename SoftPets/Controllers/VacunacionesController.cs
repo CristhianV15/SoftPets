@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace SoftPets.Controllers
@@ -18,12 +19,33 @@ namespace SoftPets.Controllers
         public ActionResult Index(int mascotaId, string tipo = "", string estado = "")
         {
             var lista = new List<Vacunacion>();
+            var vacunas = new List<Vacuna>();
+
+            // Obtener todas las vacunas activas para el diccionario
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT Id, Nombre, Lote FROM Vacunas WHERE Estado='Activo'", con))
+            {
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        vacunas.Add(new Vacuna
+                        {
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Lote = dr["Lote"].ToString()
+                        });
+                    }
+                }
+            }
+
             string query = @"
-                SELECT v.*, va.Nombre AS NombreVacuna, va.Tipo
-                FROM Vacunaciones v
-                INNER JOIN Vacunas va ON v.VacunaId = va.Id
-                WHERE v.MascotaId = @MascotaId
-            ";
+        SELECT v.*, va.Nombre AS NombreVacuna, va.Tipo
+        FROM Vacunaciones v
+        INNER JOIN Vacunas va ON v.VacunaId = va.Id
+        WHERE v.MascotaId = @MascotaId
+    ";
             if (!string.IsNullOrEmpty(tipo))
                 query += " AND va.Tipo = @Tipo";
             if (!string.IsNullOrEmpty(estado))
@@ -60,6 +82,10 @@ namespace SoftPets.Controllers
                     }
                 }
             }
+
+            // Diccionario para mostrar nombre y lote en la vista
+            //ViewBag.VacunasNombres = vacunas.ToDictionary(v => v.Id, v => $"{v.Nombre} ({v.Lote})");
+            ViewBag.VacunasNombres = vacunas.ToDictionary(v => v.Id, v => v.Nombre);
             ViewBag.Tipo = tipo;
             ViewBag.Estado = estado;
             ViewBag.MascotaId = mascotaId;
@@ -71,19 +97,29 @@ namespace SoftPets.Controllers
         {
             ViewBag.MascotaId = mascotaId;
             ViewBag.Vacunas = GetVacunasSelectList();
-            return View();
+            var model = new Vacunacion
+            {
+                MascotaId = mascotaId,
+                FechaAplicada = DateTime.Now,
+                Estado = "Aplicada",
+                FechaCreacion = DateTime.Now
+            };
+            return View(model);
         }
 
-        // CREATE: POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Vacunacion model)
+        public ActionResult Create(Vacunacion model, int? DosisYaAplicadas)
         {
+            if (string.IsNullOrEmpty(model.Estado))
+                model.Estado = "Aplicada";
+            if (model.FechaCreacion == default(DateTime))
+                model.FechaCreacion = DateTime.Now;
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Obtener frecuencia y unidad de la vacuna seleccionada
                     int? frecuencia = null, duracion = null;
                     string unidadFrecuencia = null, unidadDuracion = null;
                     using (var con = new SqlConnection(connectionString))
@@ -103,32 +139,75 @@ namespace SoftPets.Controllers
                         }
                     }
 
-                    // Insertar la vacunación aplicada
+                    // Calcular el total de dosis del esquema
+                    int totalDosis = 0;
+                    if (frecuencia.HasValue && duracion.HasValue && !string.IsNullOrEmpty(unidadFrecuencia) && !string.IsNullOrEmpty(unidadDuracion))
+                    {
+                        if (unidadFrecuencia == "Mes" && unidadDuracion == "Año")
+                            totalDosis = duracion.Value * 12 / frecuencia.Value;
+                        else if (unidadFrecuencia == "Mes" && unidadDuracion == "Mes")
+                            totalDosis = duracion.Value / frecuencia.Value;
+                        else if (unidadFrecuencia == "Año" && unidadDuracion == "Año")
+                            totalDosis = duracion.Value / frecuencia.Value;
+                        else if (unidadFrecuencia == "Semana" && unidadDuracion == "Mes")
+                            totalDosis = (duracion.Value * 4) / frecuencia.Value;
+                        else if (unidadFrecuencia == "Día" && unidadDuracion == "Mes")
+                            totalDosis = (duracion.Value * 30) / frecuencia.Value;
+                        else
+                            totalDosis = duracion.Value;
+                        if (totalDosis < 1) totalDosis = 1;
+                    }
+
+                    int dosisAplicadasPrevias = DosisYaAplicadas ?? 0;
+                    int dosisActual = dosisAplicadasPrevias + 1;
+
+                    // Insertar la vacunación aplicada (sin FechaProgramada)
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"
-                        INSERT INTO Vacunaciones 
-                        (MascotaId, VacunaId, DosisAplicada, FechaAplicada, FechaProgramada, Lote, Observaciones, Estado, FechaCreacion, FechaActualizacion)
-                        VALUES (@MascotaId, @VacunaId, @DosisAplicada, @FechaAplicada, @FechaProgramada, @Lote, @Observaciones, @Estado, @FechaCreacion, @FechaActualizacion)", con))
+                INSERT INTO Vacunaciones 
+                (MascotaId, VacunaId, DosisAplicada, FechaAplicada, Lote, Observaciones, Estado, FechaCreacion, FechaActualizacion)
+                VALUES (@MascotaId, @VacunaId, @DosisAplicada, @FechaAplicada, @Lote, @Observaciones, @Estado, @FechaCreacion, @FechaActualizacion)", con))
                     {
                         cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
                         cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
                         cmd.Parameters.AddWithValue("@DosisAplicada", (object)model.DosisAplicada ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@FechaAplicada", (object)model.FechaAplicada ?? DBNull.Value);
-                        // Calcular próxima fecha programada
-                        DateTime? fechaProx = null;
-                        if (model.FechaAplicada.HasValue && frecuencia.HasValue && !string.IsNullOrEmpty(unidadFrecuencia))
-                        {
-                            fechaProx = CalcularProximaFecha(model.FechaAplicada.Value, frecuencia.Value, unidadFrecuencia);
-                        }
-                        cmd.Parameters.AddWithValue("@FechaProgramada", (object)fechaProx ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Observaciones", (object)model.Observaciones ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Estado", "Aplicada");
-                        cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@Estado", model.Estado);
+                        cmd.Parameters.AddWithValue("@FechaCreacion", model.FechaCreacion);
                         cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
                         con.Open();
                         cmd.ExecuteNonQuery();
                     }
+
+                    // Obtener la última fecha aplicada (la actual)
+                    DateTime? ultimaFechaAplicada = model.FechaAplicada;
+
+                    // Si aún faltan dosis, crea solo la próxima pendiente
+                    if (frecuencia.HasValue && !string.IsNullOrEmpty(unidadFrecuencia) && (totalDosis == 0 || dosisActual < totalDosis))
+                    {
+                        DateTime fechaProx = ultimaFechaAplicada.HasValue
+                            ? CalcularProximaFecha(ultimaFechaAplicada.Value, frecuencia.Value, unidadFrecuencia).Value
+                            : DateTime.Now;
+
+                        using (var con = new SqlConnection(connectionString))
+                        using (var cmd = new SqlCommand(@"
+                    INSERT INTO Vacunaciones 
+                    (MascotaId, VacunaId, Estado, FechaProgramada, FechaCreacion, FechaActualizacion)
+                    VALUES (@MascotaId, @VacunaId, @Estado, @FechaProgramada, @FechaCreacion, @FechaActualizacion)", con))
+                        {
+                            cmd.Parameters.AddWithValue("@MascotaId", model.MascotaId);
+                            cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
+                            cmd.Parameters.AddWithValue("@Estado", "Pendiente");
+                            cmd.Parameters.AddWithValue("@FechaProgramada", fechaProx);
+                            cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                            con.Open();
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
                     TempData["SwalMascotaEditada"] = "Vacunación registrada correctamente";
                     return RedirectToAction("Index", new { mascotaId = model.MascotaId });
                 }
@@ -183,16 +262,21 @@ namespace SoftPets.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Vacunacion model)
         {
+            if (string.IsNullOrEmpty(model.Estado))
+                model.Estado = "Aplicada";
+            if (model.FechaCreacion == default(DateTime))
+                model.FechaCreacion = DateTime.Now;
+
             if (ModelState.IsValid)
             {
                 try
                 {
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"
-                        UPDATE Vacunaciones SET 
-                            VacunaId=@VacunaId, DosisAplicada=@DosisAplicada, FechaAplicada=@FechaAplicada, FechaProgramada=@FechaProgramada, 
-                            Lote=@Lote, Observaciones=@Observaciones, Estado=@Estado, FechaActualizacion=@FechaActualizacion
-                        WHERE Id=@Id", con))
+                UPDATE Vacunaciones SET 
+                    VacunaId=@VacunaId, DosisAplicada=@DosisAplicada, FechaAplicada=@FechaAplicada, FechaProgramada=@FechaProgramada, 
+                    Lote=@Lote, Observaciones=@Observaciones, Estado=@Estado, FechaActualizacion=@FechaActualizacion
+                WHERE Id=@Id", con))
                     {
                         cmd.Parameters.AddWithValue("@VacunaId", model.VacunaId);
                         cmd.Parameters.AddWithValue("@DosisAplicada", (object)model.DosisAplicada ?? DBNull.Value);

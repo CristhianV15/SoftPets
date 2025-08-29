@@ -7,35 +7,44 @@ using System.Web;
 
 namespace SoftPets.Models
 {
-        public class Vacunacion
-        {
-            [Key]
-            public int Id { get; set; }
+    public class Vacunacion
+    {
+        [Key]
+        public int Id { get; set; }
 
-            [Required]
-            public int MascotaId { get; set; }
+        [Required]
+        public int MascotaId { get; set; }
 
-            [Required]
-            public int VacunaId { get; set; }
+        [Required]
+        public int VacunaId { get; set; }
 
-            [StringLength(50)]
-            public string DosisAplicada { get; set; }
+        [StringLength(50)]
+        [Display(Name = "Dosis Aplicada")]
+        public string DosisAplicada { get; set; }
 
-            public DateTime? FechaAplicada { get; set; }
-            public DateTime? FechaProgramada { get; set; }
+        [Display(Name = "Fecha Aplicada")]
+        public DateTime? FechaAplicada { get; set; }
 
-            [StringLength(50)]
-            public string Lote { get; set; }
+        [Display(Name = "Fecha Programada")]
+        public DateTime? FechaProgramada { get; set; }
 
-            [StringLength(255)]
-            public string Observaciones { get; set; }
+        [StringLength(50)]
+        [Display(Name = "Lote")]
+        public string Lote { get; set; }
 
-            [Required, StringLength(20)]
-            public string Estado { get; set; } // 'Pendiente', 'Aplicada'
+        [StringLength(255)]
+        [Display(Name = "Observaciones")]
+        public string Observaciones { get; set; }
 
-            [Required]
-            public DateTime FechaCreacion { get; set; }
+        [Required, StringLength(20)]
+        [Display(Name = "Estado")]
+        public string Estado { get; set; } // 'Pendiente', 'Aplicada'
 
-            public DateTime? FechaActualizacion { get; set; }
-        }
+        [Required]
+        [Display(Name = "Fecha de Creación")]
+        public DateTime FechaCreacion { get; set; }
+
+        [Display(Name = "Fecha de Actualización")]
+        public DateTime? FechaActualizacion { get; set; }
     }
+}

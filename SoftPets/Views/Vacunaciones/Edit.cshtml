@@ -10,14 +10,24 @@
     <h2 class="mb-4">Editar Vacunación/Pastilla</h2>
     <div class="card shadow-sm">
         <div class="card-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
                 @Html.HiddenFor(m => m.Id)
                 @Html.HiddenFor(m => m.MascotaId)
+                @Html.HiddenFor(m => m.Estado)
                 <div id="errorMsg" class="error-message"></div>
                 <div class="form-group mb-3">
-                    @Html.LabelFor(m => m.VacunaId, htmlAttributes: new { @class = "form-label" })
+                    @Html.Label("Vacuna/Pastilla", htmlAttributes: new { @class = "form-label" })
                     @Html.DropDownListFor(m => m.VacunaId, vacunas, "-- Seleccione --", new { @class = "form-select", id = "VacunaId" })
                 </div>
                 <div class="form-group mb-3">
@@ -26,7 +36,7 @@
                 </div>
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.FechaAplicada, htmlAttributes: new { @class = "form-label" })
-                    @Html.TextBoxFor(m => m.FechaAplicada, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                    @Html.TextBoxFor(m => m.FechaAplicada, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", value = Model.FechaAplicada.HasValue ? Model.FechaAplicada.Value.ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd") })
                 </div>
                 <div class="form-group mb-3">
                     @Html.LabelFor(m => m.Lote, htmlAttributes: new { @class = "form-label" })
@@ -44,3 +54,17 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#VacunaId').select2({
+                placeholder: "Buscar vacuna o pastilla...",
+                allowClear: true
+            });
+        });
+    </script>
+}

@@ -2,13 +2,15 @@
 @{
     ViewBag.Title = "Vacunaciones y Pastillas";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
     int mascotaId = ViewBag.MascotaId;
     string tipo = ViewBag.Tipo as string ?? "";
     string estado = ViewBag.Estado as string ?? "";
+    var vacunasNombres = ViewBag.VacunasNombres as Dictionary<int, string>; // Si lo usas para mostrar nombre en vez de ID
 }
 
 <div class="main-content-bg">
-    <div class="tabla-container">
+    <div class="tabla-container" style="overflow-x:auto; min-width:1100px;">
         <h2 class="text-center mb-4">Vacunaciones y Pastillas de la Mascota</h2>
         <form id="filtroForm" class="row mb-3 g-2 justify-content-center">
             <div class="col-auto">
@@ -30,7 +32,7 @@
             </div>
         </form>
         <div id="tablaVacunaciones">
-            <table class="table table-custom">
+            <table class="table table-custom" style="min-width:1000px;">
                 <tr>
                     <th>Vacuna/Pastilla</th>
                     <th>Dosis Aplicada</th>
@@ -44,7 +46,13 @@
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.VacunaId</td> <!-- Puedes mostrar el nombre con un ViewBag o ViewModel si lo necesitas -->
+                        <td>
+                            @(
+                                vacunasNombres != null && vacunasNombres.ContainsKey(item.VacunaId)
+                                ? vacunasNombres[item.VacunaId]
+                                : item.VacunaId.ToString()
+                            )
+                        </td>
                         <td>@item.DosisAplicada</td>
                         <td>@(item.FechaAplicada.HasValue ? item.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
                         <td>@(item.FechaProgramada.HasValue ? item.FechaProgramada.Value.ToString("dd/MM/yyyy") : "-")</td>

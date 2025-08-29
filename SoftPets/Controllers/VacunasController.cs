@@ -123,12 +123,11 @@ namespace SoftPets.Controllers
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"
                         INSERT INTO Vacunas 
-                        (Nombre, Descripcion, Lote, Estado, FechaCreacion, FechaActualizacion, Tipo, Frecuencia, UnidadFrecuencia, Duracion, UnidadDuracion, RangoDosis)
-                        VALUES (@Nombre, @Descripcion, @Lote, @Estado, @FechaCreacion, @FechaActualizacion, @Tipo, @Frecuencia, @UnidadFrecuencia, @Duracion, @UnidadDuracion, @RangoDosis)", con))
+                        (Nombre, Descripcion, Estado, FechaCreacion, FechaActualizacion, Tipo, Frecuencia, UnidadFrecuencia, Duracion, UnidadDuracion, RangoDosis)
+                        VALUES (@Nombre, @Descripcion, @Estado, @FechaCreacion, @FechaActualizacion, @Tipo, @Frecuencia, @UnidadFrecuencia, @Duracion, @UnidadDuracion, @RangoDosis)", con))
                     {
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                         cmd.Parameters.AddWithValue("@Descripcion", (object)model.Descripcion ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Estado", model.Estado);
                         cmd.Parameters.AddWithValue("@FechaCreacion", DateTime.Now);
                         cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
@@ -169,7 +168,6 @@ namespace SoftPets.Controllers
                             Id = (int)dr["Id"],
                             Nombre = dr["Nombre"].ToString(),
                             Descripcion = dr["Descripcion"].ToString(),
-                            Lote = dr["Lote"].ToString(),
                             Estado = dr["Estado"].ToString(),
                             FechaCreacion = (DateTime)dr["FechaCreacion"],
                             FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
@@ -199,7 +197,7 @@ namespace SoftPets.Controllers
                     using (var con = new SqlConnection(connectionString))
                     using (var cmd = new SqlCommand(@"
                         UPDATE Vacunas SET 
-                            Nombre=@Nombre, Descripcion=@Descripcion, Lote=@Lote, Estado=@Estado, 
+                            Nombre=@Nombre, Descripcion=@Descripcion, Estado=@Estado, 
                             FechaActualizacion=@FechaActualizacion, Tipo=@Tipo, 
                             Frecuencia=@Frecuencia, UnidadFrecuencia=@UnidadFrecuencia, 
                             Duracion=@Duracion, UnidadDuracion=@UnidadDuracion, RangoDosis=@RangoDosis
@@ -207,7 +205,6 @@ namespace SoftPets.Controllers
                     {
                         cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
                         cmd.Parameters.AddWithValue("@Descripcion", (object)model.Descripcion ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@Lote", (object)model.Lote ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@Estado", model.Estado);
                         cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
                         cmd.Parameters.AddWithValue("@Tipo", model.Tipo);
@@ -248,7 +245,6 @@ namespace SoftPets.Controllers
                             Id = (int)dr["Id"],
                             Nombre = dr["Nombre"].ToString(),
                             Descripcion = dr["Descripcion"].ToString(),
-                            Lote = dr["Lote"].ToString(),
                             Estado = dr["Estado"].ToString(),
                             FechaCreacion = (DateTime)dr["FechaCreacion"],
                             FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
