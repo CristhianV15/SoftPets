@@ -2,37 +2,90 @@
 @{
     ViewBag.Title = "Tendencias de Salud";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    int mascotaId = ViewBag.MascotaId;
-    string nombreMascota = ViewBag.NombreMascota;
+    int? mascotaId = ViewBag.MascotaId as int?;
+    string nombreMascota = ViewBag.NombreMascota as string ?? "";
+    string mascotaNombre = ViewBag.MascotaNombre as string ?? "";
+    var mascotas = ViewBag.Mascotas as List<SoftPets.Models.Mascota>;
 }
 
 <div class="main-content-bg">
     <div class="tabla-container">
-        <h2 class="text-center mb-4">Tendencias de Salud de @nombreMascota</h2>
-        <p class="text-center">
-            @Html.ActionLink("Registrar Tendencia", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
-            <a href="@Url.Action("Grafico", new { mascotaId = mascotaId })" class="btn btn-unificado btn-crear-nuevo mb-3 ms-2">
-                <i class="bi bi-bar-chart-line"></i> Ver Gráfico
-            </a>
-        </p>
-        <table class="table table-custom">
-            <tr>
-                <th>Fecha</th>
-                <th>Peso (kg)</th>
-                <th>Temperatura (°C)</th>
-                <th>Otros</th>
-                <th>Fecha Registro</th>
-            </tr>
-            @foreach (var item in Model)
+        <h2 class="text-center mb-4">
+            @if (mascotaId != null)
             {
-                <tr>
-                    <td>@(item.Fecha.HasValue ? item.Fecha.Value.ToString("dd/MM/yyyy") : "")</td>
-                    <td>@item.Peso</td>
-                    <td>@item.Temperatura</td>
-                    <td>@item.Otros</td>
-                    <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td>
-                </tr>
+                @:Tendencias de Salud de @nombreMascota
             }
-        </table>
+            else
+            {
+                @:Tendencias de Salud de todas las mascotas
+            }
+        </h2>
+        <div class="text-center mb-3">
+            @Html.ActionLink("Registrar Tendencia", "Create", mascotaId != null ? new { mascotaId = mascotaId } : null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+            @if (mascotaId != null)
+            {
+                <a href="@Url.Action("Grafico", new { mascotaId = mascotaId })" class="btn btn-unificado btn-crear-nuevo mb-3 ms-2">
+                    <i class="bi bi-bar-chart-line"></i> Ver Gráfico
+                </a>
+            }
+        </div>
+        <form id="filtroForm" class="row mb-3 g-2 justify-content-center" autocomplete="off" onsubmit="return false;">
+            @if (mascotaId == null)
+            {
+                <div class="col-auto">
+                    <input type="text" name="mascotaNombre" class="form-control" placeholder="Buscar mascota..." value="@mascotaNombre" />
+                </div>
+            }
+            @if (mascotaId != null)
+            {
+                <input type="hidden" name="mascotaId" value="@mascotaId" />
+            }
+        </form>
+        <div id="tablaTendencias">
+            <table class="table table-custom">
+                <tr>
+                    @if (mascotaId == null)
+                    {
+                        <th>Mascota</th>
+                    }
+                    <th>Fecha</th>
+                    <th>Peso (kg)</th>
+                    <th>Temperatura (°C)</th>
+                    <th>Otros</th>
+                    <th>Fecha Registro</th>
+                </tr>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        @if (mascotaId == null)
+                        {
+                            var m = mascotas?.FirstOrDefault(x => x.Id == item.MascotaId);
+                            <td>@(m != null ? m.Nombre : item.MascotaId.ToString())</td>
+                        }
+                        <td>@(item.Fecha.HasValue ? item.Fecha.Value.ToString("dd/MM/yyyy") : "")</td>
+                        <td>@item.Peso</td>
+                        <td>@item.Temperatura</td>
+                        <td>@item.Otros</td>
+                        <td>@item.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </table>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+function cargarTablaTendencias() {
+    var data = $("#filtroForm").serialize();
+    $.get('@Url.Action("Index", "Tendencias")', data, function (html) {
+        var newTable = $(html).find("#tablaTendencias").html();
+        $("#tablaTendencias").html(newTable);
+    });
+}
+$('#filtroForm input').on('keyup', function () {
+    cargarTablaTendencias();
+});
+    </script>
+}

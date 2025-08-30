@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace SoftPets.Controllers
@@ -15,50 +16,163 @@ namespace SoftPets.Controllers
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
 
         // Listar historial de tendencias de una mascota
-        public ActionResult Index(int mascotaId)
+        public ActionResult Index(int? mascotaId, string mascotaNombre = "")
         {
+            int duenioId = (int)Session["DuenioId"];
             var lista = new List<Tendencia>();
+            var mascotas = new List<Mascota>();
+
+            // Obtener todas las mascotas del dueño para el filtro
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand("TendenciasSelectByMascota", con))
+            using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
             {
-                cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@MascotaId", mascotaId);
+                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
                     while (dr.Read())
                     {
-                        lista.Add(new Tendencia
+                        mascotas.Add(new Mascota
                         {
                             Id = (int)dr["Id"],
-                            MascotaId = (int)dr["MascotaId"],
-                            Fecha = dr["Fecha"] != DBNull.Value ? (DateTime?)dr["Fecha"] : null,
-                            Peso = dr["Peso"] != DBNull.Value ? (decimal?)dr["Peso"] : null,
-                            Temperatura = dr["Temperatura"] != DBNull.Value ? (decimal?)dr["Temperatura"] : null,
-                            Otros = dr["Otros"].ToString(),
-                            Estado = dr["Estado"].ToString()[0],
-                            FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"])
+                            Nombre = dr["Nombre"].ToString()
                         });
                     }
                 }
             }
+
+            if (mascotaId.HasValue)
+            {
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("TendenciasSelectByMascota", con))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MascotaId", mascotaId.Value);
+                    con.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            lista.Add(new Tendencia
+                            {
+                                Id = (int)dr["Id"],
+                                MascotaId = (int)dr["MascotaId"],
+                                Fecha = dr["Fecha"] != DBNull.Value ? (DateTime?)dr["Fecha"] : null,
+                                Peso = dr["Peso"] != DBNull.Value ? (decimal?)dr["Peso"] : null,
+                                Temperatura = dr["Temperatura"] != DBNull.Value ? (decimal?)dr["Temperatura"] : null,
+                                Otros = dr["Otros"].ToString(),
+                                Estado = dr["Estado"].ToString()[0],
+                                FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"])
+                            });
+                        }
+                    }
+                }
+                ViewBag.NombreMascota = mascotas.FirstOrDefault(m => m.Id == mascotaId.Value)?.Nombre ?? "";
+            }
+            else
+            {
+                string query = @"
+            SELECT t.*, m.Nombre AS NombreMascota
+            FROM Tendencias t
+            INNER JOIN Mascotas m ON t.MascotaId = m.Id
+            WHERE m.DuenioId = @DuenioId
+        ";
+                if (!string.IsNullOrEmpty(mascotaNombre))
+                    query += " AND m.Nombre LIKE @MascotaNombre";
+
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                    if (!string.IsNullOrEmpty(mascotaNombre))
+                        cmd.Parameters.AddWithValue("@MascotaNombre", "%" + mascotaNombre + "%");
+                    con.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            lista.Add(new Tendencia
+                            {
+                                Id = (int)dr["Id"],
+                                MascotaId = (int)dr["MascotaId"],
+                                Fecha = dr["Fecha"] != DBNull.Value ? (DateTime?)dr["Fecha"] : null,
+                                Peso = dr["Peso"] != DBNull.Value ? (decimal?)dr["Peso"] : null,
+                                Temperatura = dr["Temperatura"] != DBNull.Value ? (decimal?)dr["Temperatura"] : null,
+                                Otros = dr["Otros"].ToString(),
+                                Estado = dr["Estado"].ToString()[0],
+                                FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"])
+                            });
+                        }
+                    }
+                }
+                ViewBag.NombreMascota = "";
+            }
+
             ViewBag.MascotaId = mascotaId;
-            ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId);
+            ViewBag.Mascotas = mascotas;
+            ViewBag.MascotaNombre = mascotaNombre;
             return View(lista);
         }
 
-        // Crear nueva tendencia
-        public ActionResult Create(int mascotaId)
+        // Helper para renderizar la tabla como string (igual que en Vacunaciones)
+        private string RenderPartialViewToString(string viewName, object model)
+        {
+            ViewData.Model = model;
+            using (var sw = new System.IO.StringWriter())
+            {
+                var viewResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName);
+                var viewContext = new ViewContext(ControllerContext, viewResult.View, ViewData, TempData, sw);
+                viewResult.View.Render(viewContext, sw);
+                viewResult.ViewEngine.ReleaseView(ControllerContext, viewResult.View);
+                return sw.GetStringBuilder().ToString();
+            }
+        }
+        public ActionResult Create(int? mascotaId)
         {
             ViewBag.MascotaId = mascotaId;
-            ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId);
-            return View();
+            if (mascotaId != null)
+            {
+                ViewBag.NombreMascota = ObtenerNombreMascota(mascotaId.Value);
+            }
+            else
+            {
+                int duenioId = (int)Session["DuenioId"];
+                var mascotas = new List<Mascota>();
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+                {
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                    con.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            mascotas.Add(new Mascota
+                            {
+                                Id = (int)dr["Id"],
+                                Nombre = dr["Nombre"].ToString()
+                            });
+                        }
+                    }
+                }
+                ViewBag.Mascotas = mascotas;
+            }
+            var model = new Tendencia
+            {
+                MascotaId = mascotaId ?? 0,
+                Fecha = DateTime.Now
+            };
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Tendencia model)
         {
+            // Validación: MascotaId debe ser obligatorio
+            if (model.MascotaId == 0)
+                ModelState.AddModelError("MascotaId", "Debe seleccionar una mascota.");
+
             if (ModelState.IsValid)
             {
                 using (var con = new SqlConnection(connectionString))
@@ -77,6 +191,29 @@ namespace SoftPets.Controllers
                 return RedirectToAction("Index", new { mascotaId = model.MascotaId });
             }
             ViewBag.MascotaId = model.MascotaId;
+            if (model.MascotaId == 0)
+            {
+                int duenioId = (int)Session["DuenioId"];
+                var mascotas = new List<Mascota>();
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+                {
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                    con.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            mascotas.Add(new Mascota
+                            {
+                                Id = (int)dr["Id"],
+                                Nombre = dr["Nombre"].ToString()
+                            });
+                        }
+                    }
+                }
+                ViewBag.Mascotas = mascotas;
+            }
             return View(model);
         }
 
