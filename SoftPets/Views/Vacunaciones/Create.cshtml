@@ -2,8 +2,9 @@
 @{
     ViewBag.Title = "Registrar Vacunación/Pastilla";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    int mascotaId = ViewBag.MascotaId;
+    int? mascotaId = ViewBag.MascotaId as int?;
     var vacunas = ViewBag.Vacunas as List<SelectListItem>;
+    var mascotas = ViewBag.Mascotas as List<SoftPets.Models.Mascota>;
 }
 
 <div class="container" style="max-width:600px;">
@@ -22,7 +23,23 @@
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
-                @Html.HiddenFor(m => m.MascotaId, new { Value = mascotaId })
+                if (mascotaId != null)
+                {
+                    @Html.HiddenFor(m => m.MascotaId, new { Value = mascotaId })
+                }
+                else
+                {
+                    <div class="form-group mb-3">
+                        @Html.Label("Mascota", htmlAttributes: new { @class = "form-label" })
+                        <select name="MascotaId" id="MascotaId" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var m in mascotas)
+                            {
+                                <option value="@m.Id">@m.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                }
                 @Html.HiddenFor(m => m.Estado, new { Value = "Aplicada" })
                 <div class="form-group mb-3">
                     @Html.Label("Vacuna/Pastilla", htmlAttributes: new { @class = "form-label" })
@@ -54,7 +71,7 @@
                 </div>
                 <div class="form-group mt-3">
                     <input type="submit" value="Registrar" class="btn btn-unificado" />
-                    @Html.ActionLink("Volver", "Index", new { mascotaId = mascotaId }, new { @class = "btn btn-secondary ms-2" })
+                    @Html.ActionLink("Volver", "Index", mascotaId != null ? new { mascotaId = mascotaId } : null, new { @class = "btn btn-secondary ms-2" })
                 </div>
             }
         </div>
@@ -109,6 +126,13 @@ $(document).ready(function() {
         placeholder: "Buscar vacuna o pastilla...",
         allowClear: true
     });
+    // Solo activa Select2 para MascotaId si el combo existe (solo si no hay mascotaId)
+    if ($('#MascotaId').length && $('#MascotaId option').length > 1) {
+        $('#MascotaId').select2({
+            placeholder: "Buscar mascota...",
+            allowClear: true
+        });
+    }
     $('#DosisYaAplicadas').on('input', function() {
         var val = parseInt($(this).val());
         if (val > 0) {

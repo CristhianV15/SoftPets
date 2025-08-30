@@ -16,10 +16,12 @@ namespace SoftPets.Controllers
         private string connectionString = ConfigurationManager.ConnectionStrings["ConexionLocal"].ConnectionString;
 
         // INDEX: Historial y pendientes por mascota
-        public ActionResult Index(int mascotaId, string tipo = "", string estado = "")
+        public ActionResult Index(int? mascotaId, string tipo = "", string estado = "", string mascotaNombre = "", string vacunaNombre = "")
         {
+            int duenioId = (int)Session["DuenioId"];
             var lista = new List<Vacunacion>();
             var vacunas = new List<Vacuna>();
+            var mascotas = new List<Mascota>();
 
             // Obtener todas las vacunas activas para el diccionario
             using (var con = new SqlConnection(connectionString))
@@ -40,25 +42,57 @@ namespace SoftPets.Controllers
                 }
             }
 
+            // Obtener todas las mascotas del dueño para el filtro
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+            {
+                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        mascotas.Add(new Mascota
+                        {
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString()
+                        });
+                    }
+                }
+            }
+
             string query = @"
-        SELECT v.*, va.Nombre AS NombreVacuna, va.Tipo
+        SELECT v.*, va.Nombre AS NombreVacuna, va.Tipo, m.Nombre AS NombreMascota
         FROM Vacunaciones v
         INNER JOIN Vacunas va ON v.VacunaId = va.Id
-        WHERE v.MascotaId = @MascotaId
+        INNER JOIN Mascotas m ON v.MascotaId = m.Id
+        WHERE m.DuenioId = @DuenioId
     ";
+            if (mascotaId.HasValue)
+                query += " AND v.MascotaId = @MascotaId";
             if (!string.IsNullOrEmpty(tipo))
                 query += " AND va.Tipo = @Tipo";
             if (!string.IsNullOrEmpty(estado))
                 query += " AND v.Estado = @Estado";
+            if (!string.IsNullOrEmpty(mascotaNombre))
+                query += " AND m.Nombre LIKE @MascotaNombre";
+            if (!string.IsNullOrEmpty(vacunaNombre))
+                query += " AND va.Nombre LIKE @VacunaNombre";
 
             using (var con = new SqlConnection(connectionString))
             using (var cmd = new SqlCommand(query, con))
             {
-                cmd.Parameters.AddWithValue("@MascotaId", mascotaId);
+                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                if (mascotaId.HasValue)
+                    cmd.Parameters.AddWithValue("@MascotaId", mascotaId.Value);
                 if (!string.IsNullOrEmpty(tipo))
                     cmd.Parameters.AddWithValue("@Tipo", tipo);
                 if (!string.IsNullOrEmpty(estado))
                     cmd.Parameters.AddWithValue("@Estado", estado);
+                if (!string.IsNullOrEmpty(mascotaNombre))
+                    cmd.Parameters.AddWithValue("@MascotaNombre", "%" + mascotaNombre + "%");
+                if (!string.IsNullOrEmpty(vacunaNombre))
+                    cmd.Parameters.AddWithValue("@VacunaNombre", "%" + vacunaNombre + "%");
 
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
@@ -77,36 +111,60 @@ namespace SoftPets.Controllers
                             Observaciones = dr["Observaciones"].ToString(),
                             Estado = dr["Estado"].ToString(),
                             FechaCreacion = (DateTime)dr["FechaCreacion"],
-                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null
+                            FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
+                            // Si quieres mostrar nombre de mascota en la vista, puedes agregar una propiedad extra en el modelo o usar ViewBag
                         });
                     }
                 }
             }
 
-            // Diccionario para mostrar nombre y lote en la vista
-            //ViewBag.VacunasNombres = vacunas.ToDictionary(v => v.Id, v => $"{v.Nombre} ({v.Lote})");
             ViewBag.VacunasNombres = vacunas.ToDictionary(v => v.Id, v => v.Nombre);
+            ViewBag.Mascotas = mascotas;
             ViewBag.Tipo = tipo;
             ViewBag.Estado = estado;
             ViewBag.MascotaId = mascotaId;
+            ViewBag.MascotaNombre = mascotaNombre;
+            ViewBag.VacunaNombre = vacunaNombre;
             return View(lista);
         }
 
         // CREATE: GET
-        public ActionResult Create(int mascotaId)
+        public ActionResult Create(int? mascotaId)
         {
             ViewBag.MascotaId = mascotaId;
             ViewBag.Vacunas = GetVacunasSelectList();
+            if (mascotaId == null)
+            {
+                int duenioId = (int)Session["DuenioId"];
+                var mascotas = new List<Mascota>();
+                using (var con = new SqlConnection(connectionString))
+                using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+                {
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                    con.Open();
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            mascotas.Add(new Mascota
+                            {
+                                Id = (int)dr["Id"],
+                                Nombre = dr["Nombre"].ToString()
+                            });
+                        }
+                    }
+                }
+                ViewBag.Mascotas = mascotas;
+            }
             var model = new Vacunacion
             {
-                MascotaId = mascotaId,
+                MascotaId = mascotaId ?? 0,
                 FechaAplicada = DateTime.Now,
                 Estado = "Aplicada",
                 FechaCreacion = DateTime.Now
             };
             return View(model);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(Vacunacion model, int? DosisYaAplicadas, DateTime? FechaUltimaDosis)

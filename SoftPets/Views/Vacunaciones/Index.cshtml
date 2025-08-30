@@ -2,17 +2,31 @@
 @{
     ViewBag.Title = "Vacunaciones y Pastillas";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    int mascotaId = ViewBag.MascotaId;
+    int? mascotaId = ViewBag.MascotaId as int?;
     string tipo = ViewBag.Tipo as string ?? "";
     string estado = ViewBag.Estado as string ?? "";
-    var vacunasNombres = ViewBag.VacunasNombres as Dictionary<int, string>; // Si lo usas para mostrar nombre en vez de ID
+    string mascotaNombre = ViewBag.MascotaNombre as string ?? "";
+    string vacunaNombre = ViewBag.VacunaNombre as string ?? "";
+    var vacunasNombres = ViewBag.VacunasNombres as Dictionary<int, string>;
+    var mascotas = ViewBag.Mascotas as List<SoftPets.Models.Mascota>;
 }
 
 <div class="main-content-bg">
     <div class="tabla-container" style="overflow-x:auto; min-width:1100px;">
-        <h2 class="text-center mb-4">Vacunaciones y Pastillas de la Mascota</h2>
+        <h2 class="text-center mb-4">Vacunaciones y Pastillas</h2>
+        <div class="text-center mb-3">
+            @Html.ActionLink("Registrar Vacunación/Pastilla", "Create", mascotaId != null ? new { mascotaId = mascotaId } : null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
+        </div>
         <form id="filtroForm" class="row mb-3 g-2 justify-content-center">
+            @if (mascotaId == null)
+            {
+                <div class="col-auto">
+                    <input type="text" name="mascotaNombre" class="form-control" placeholder="Buscar mascota..." value="@mascotaNombre" />
+                </div>
+            }
+            <div class="col-auto">
+                <input type="text" name="vacunaNombre" class="form-control" placeholder="Buscar vacuna/pastilla..." value="@vacunaNombre" />
+            </div>
             <div class="col-auto">
                 <select name="tipo" class="form-select">
                     <option value="">-- Tipo --</option>
@@ -27,13 +41,11 @@
                     <option value="Aplicada" @(estado == "Aplicada" ? "selected" : "")>Aplicada</option>
                 </select>
             </div>
-            <div class="col-auto align-self-end">
-                @Html.ActionLink("Registrar Vacunación/Pastilla", "Create", new { mascotaId = mascotaId }, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
-            </div>
         </form>
         <div id="tablaVacunaciones">
             <table class="table table-custom" style="min-width:1000px;">
                 <tr>
+                    <th>Mascota</th>
                     <th>Vacuna/Pastilla</th>
                     <th>Dosis Aplicada</th>
                     <th>Fecha Aplicada</th>
@@ -45,7 +57,14 @@
                 </tr>
                 @foreach (var item in Model)
                 {
+                    bool tieneFechaAplicada = item.FechaAplicada.HasValue;
                     <tr>
+                        <td>
+                            @{
+                                var m = mascotas?.FirstOrDefault(x => x.Id == item.MascotaId);
+                                @(m != null ? m.Nombre : item.MascotaId.ToString())
+                            }
+                        </td>
                         <td>
                             @(
                                 vacunasNombres != null && vacunasNombres.ContainsKey(item.VacunaId)
@@ -54,7 +73,7 @@
                             )
                         </td>
                         <td>@item.DosisAplicada</td>
-                        <td>@(item.FechaAplicada.HasValue ? item.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
+                        <td>@(tieneFechaAplicada ? item.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
                         <td>@(item.FechaProgramada.HasValue ? item.FechaProgramada.Value.ToString("dd/MM/yyyy") : "-")</td>
                         <td>@item.Lote</td>
                         <td>
@@ -69,9 +88,21 @@
                         </td>
                         <td>@item.Observaciones</td>
                         <td>
-                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
+                            @if (tieneFechaAplicada)
+                            {
+                                <span class="btn btn-unificado btn-sm disabled"
+                                      title="Edición deshabilitada: ya aplicada"
+                                      style="cursor: not-allowed; display: inline-block;"
+                                      tabindex="-1" aria-disabled="true">
+                                    <i class="bi bi-pencil-square"></i>
+                                </span>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            }
                         </td>
                     </tr>
                 }
@@ -85,12 +116,12 @@
     <script>
 function cargarTablaVacunaciones() {
     var data = $("#filtroForm").serialize();
-    $.get('@Url.Action("Index", "Vacunaciones")', data + "&mascotaId=@mascotaId", function (html) {
+    $.get('@Url.Action("Index", "Vacunaciones")', data, function (html) {
         var newTable = $(html).find("#tablaVacunaciones").html();
         $("#tablaVacunaciones").html(newTable);
     });
 }
-$('#filtroForm select').on('change', function () {
+$('#filtroForm select, #filtroForm input').on('change keyup', function () {
     cargarTablaVacunaciones();
 });
     </script>
