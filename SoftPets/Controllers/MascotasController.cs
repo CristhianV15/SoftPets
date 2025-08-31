@@ -321,8 +321,89 @@ namespace SoftPets.Controllers
             }
             return View(model);
         }
+        public ActionResult Carnet(int id)
+        {
+            // Obtener datos de la mascota y dueño
+            Mascota mascota = null;
+            string nombreDueno = "";
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(@"
+        SELECT m.*, d.Nombres AS NombreDueno
+        FROM Mascotas m
+        INNER JOIN Duenios d ON m.DuenioId = d.Id
+        WHERE m.Id = @Id", con))
+            {
+                cmd.Parameters.AddWithValue("@Id", id);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        mascota = new Mascota
+                        {
+                            Id = (int)dr["Id"],
+                            Nombre = dr["Nombre"].ToString(),
+                            Especie = dr["Especie"].ToString(),
+                            Raza = dr["Raza"].ToString(),
+                            Sexo = dr["Sexo"].ToString(),
+                            FechaNacimiento = dr["FechaNacimiento"] != DBNull.Value ? (DateTime?)dr["FechaNacimiento"] : null,
+                            Color = dr["Color"].ToString(),
+                            Foto = dr["Foto"].ToString()
+                        };
+                        nombreDueno = dr["NombreDueno"].ToString();
+                    }
+                }
+            }
 
+            // Obtener historial de vacunas aplicadas con nombre y tipo
+            var vacunasAplicadas = new List<CarnetVacunaVM>();
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand(@"
+        SELECT v.*, va.Nombre AS NombreVacuna, va.Tipo, va.Lote AS LoteVacuna
+        FROM Vacunaciones v
+        INNER JOIN Vacunas va ON v.VacunaId = va.Id
+        WHERE v.MascotaId = @MascotaId AND v.Estado = 'Aplicada'
+        ORDER BY v.FechaAplicada", con))
+            {
+                cmd.Parameters.AddWithValue("@MascotaId", id);
+                con.Open();
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        vacunasAplicadas.Add(new CarnetVacunaVM
+                        {
+                            NombreVacuna = dr["NombreVacuna"].ToString(),
+                            Tipo = dr["Tipo"].ToString(),
+                            DosisAplicada = dr["DosisAplicada"].ToString(),
+                            FechaAplicada = dr["FechaAplicada"] != DBNull.Value ? (DateTime?)dr["FechaAplicada"] : null,
+                            Lote = dr["Lote"].ToString(),
+                            Observaciones = dr["Observaciones"].ToString()
+                        });
+                    }
+                }
+            }
 
+            ViewBag.Mascota = mascota;
+            ViewBag.NombreDueno = nombreDueno;
+            ViewBag.VacunasAplicadas = vacunasAplicadas;
 
-    }
+            //    return new Rotativa.ViewAsPdf("CarnetPdf")
+            //    {
+            //        FileName = $"Carnet_{mascota.Nombre}.pdf",
+            //        PageSize = Rotativa.Options.Size.A5,
+            //        PageOrientation = Rotativa.Options.Orientation.Landscape,
+            //        PageMargins = new Rotativa.Options.Margins(5, 5, 5, 5)
+            //    };
+            //}
+
+            return new Rotativa.ViewAsPdf("CarnetPdf")
+            {
+                FileName = $"Carnet_{mascota.Nombre}.pdf",
+                PageSize = Rotativa.Options.Size.A4, // Usa A4 para evitar saltos
+                PageOrientation = Rotativa.Options.Orientation.Portrait, // o Landscape si prefieres
+                PageMargins = new Rotativa.Options.Margins(0, 0, 0, 0)
+            };
+        }
+        }
 }

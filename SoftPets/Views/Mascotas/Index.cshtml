@@ -102,8 +102,15 @@
                         </div>
                         <div class="acciones-btn-group">
                             @*<a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunas">
-                                <i class="bi bi-capsule"></i>
-                            </a>*@
+            <i class="bi bi-capsule"></i>
+        </a>*@
+
+
+                            <a href="@Url.Action("Carnet", "Mascotas", new { id = item.Id })" class="btn btn-unificado btn-sm" title="Descargar Carnet">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+
+
                             <a href="@Url.Action("Index", "Vacunaciones", new { mascotaId = item.Id })" class="btn btn-unificado btn-sm" title="Vacunaciones/Pastillas">
                                 <i class="bi bi-shield-plus"></i>
                             </a>
