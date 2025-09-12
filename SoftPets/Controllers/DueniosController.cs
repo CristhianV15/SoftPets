@@ -308,7 +308,7 @@ namespace SoftPets.Controllers
             int usuarioId = (int)Session["UsuarioId"];
             var viewModel = new DuenioMisDatosViewModel();
 
-            // Obtener datos de Usuario
+            // Obtener datos de Usuario (igual que antes)
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("UsuariosSelect", con))
@@ -333,39 +333,35 @@ namespace SoftPets.Controllers
                 }
             }
 
-            // Obtener datos de Duenio
+            // Obtener datos de Duenio (filtra por UsuarioId en el SP)
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand("DueniosSelect", con))
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Id", DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
                     con.Open();
                     var reader = cmd.ExecuteReader();
-                    while (reader.Read())
+                    if (reader.Read())
                     {
-                        if ((int)reader["UsuarioId"] == usuarioId)
+                        viewModel.Duenio = new Duenio
                         {
-                            viewModel.Duenio = new Duenio
-                            {
-                                Id = (int)reader["Id"],
-                                UsuarioId = usuarioId,
-                                Nombres = reader["Nombres"].ToString(),
-                                Apellidos = reader["Apellidos"].ToString(),
-                                DNI = reader["DNI"].ToString(),
-                                Celular = reader["Celular"].ToString(),
-                                Direccion = reader["Direccion"].ToString(),
-                                Estado = Convert.ToChar(reader["Estado"]),
-                                FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
-                                FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
-                            };
-                            break;
-                        }
+                            Id = (int)reader["Id"],
+                            UsuarioId = usuarioId,
+                            Nombres = reader["Nombres"].ToString(),
+                            Apellidos = reader["Apellidos"].ToString(),
+                            DNI = reader["DNI"].ToString(),
+                            Celular = reader["Celular"].ToString(),
+                            Direccion = reader["Direccion"].ToString(),
+                            Estado = Convert.ToChar(reader["Estado"]),
+                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
+                            FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
+                        };
                     }
                 }
             }
 
-            // Si no tiene datos de Duenio, inicializa para crear
             if (viewModel.Duenio == null)
             {
                 viewModel.Duenio = new Duenio { UsuarioId = usuarioId, Estado = '1', FechaCreacion = DateTime.Now };
@@ -378,7 +374,6 @@ namespace SoftPets.Controllers
 
             return View(viewModel);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult MisDatos(DuenioMisDatosViewModel viewModel)
