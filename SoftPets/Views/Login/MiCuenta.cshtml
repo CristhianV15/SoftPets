@@ -1,0 +1,100 @@
+﻿@model SoftPets.Models.Usuario
+@{
+    ViewBag.Title = "Mi Cuenta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content-bg">
+    <div class="form-horizontal" style="max-width: 500px; margin: 30px auto;">
+        <h2 class="text-center mb-4">@ViewBag.Title</h2>
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "miCuentaForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.Id)
+            <div id="errorMsg" class="error-message"></div>
+            <div class="form-group mb-3">
+                @Html.LabelFor(m => m.Nombre, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", maxlength = 100, id = "Nombre" })
+                @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group mb-3">
+                @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", maxlength = 100, id = "Email" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group mb-3">
+                @Html.LabelFor(m => m.Contrasenia, new { @class = "form-label" })
+                @Html.PasswordFor(m => m.Contrasenia, new { @class = "form-control", maxlength = 100, id = "Contrasenia" })
+                @Html.ValidationMessageFor(m => m.Contrasenia, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group mt-3 text-center">
+                <button type="submit" class="btn btn-unificado">Actualizar</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('miCuentaForm').onsubmit = function (e) {
+            var nombre = document.getElementById('Nombre').value.trim();
+            var email = document.getElementById('Email').value.trim();
+            var contrasenia = document.getElementById('Contrasenia').value.trim();
+            var errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+
+            if (!nombre) {
+                errorMsg.innerText = "El nombre de usuario es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!email) {
+                errorMsg.innerText = "El correo es obligatorio.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!contrasenia) {
+                errorMsg.innerText = "La contraseña es obligatoria.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (contrasenia.length < 8) {
+                errorMsg.innerText = "La contraseña debe tener al menos 8 caracteres.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!/[A-Za-z]/.test(contrasenia)) {
+                errorMsg.innerText = "La contraseña debe contener al menos una letra.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+            if (!/\d/.test(contrasenia)) {
+                errorMsg.innerText = "La contraseña debe contener al menos un número.";
+                errorMsg.style.display = 'block';
+                e.preventDefault();
+                return false;
+            }
+           
+        };
+
+        @if (TempData["CuentaActualizada"] != null)
+        {
+            <text>
+            Swal.fire({
+                icon: 'success',
+                title: '¡Cuenta actualizada!',
+                text: 'Tus datos fueron guardados correctamente.',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            </text>
+        }
+    </script>
+}

@@ -26,30 +26,25 @@
                         <i class="bi bi-house-door card-inicio card-icon"></i> Inicio
                     </a>
                 </li>
+                <li>
+                    <a class="nav-link" href="@Url.Action("MiCuenta", "Login")">
+                        <i class="bi bi-person-circle"></i> Mi Cuenta
+                    </a>
+                </li>
                 <!-- Mascotas (todos) -->
                 <li>
                     <a class="nav-link" href="@Url.Action("Index", "Mascotas")">
                         <i class="bi bi-house-heart card-mascotas card-icon"></i> Mascotas
                     </a>
                 </li>
-                <!-- Vacunaciones (todos) -->
-                <li>
-                    <a class="nav-link" href="@Url.Action("Index", "Vacunaciones")">
-                        <i class="bi bi-shield-plus card-vacunaciones card-icon"></i> Vacunaciones
-                    </a>
-                </li>
+
                 <!-- Historiales Clínicos (todos) -->
                 @*<li>
-                    <a class="nav-link" href="@Url.Action("Index", "HistorialesClinicos")">
-                        <i class="bi bi-journal-medical card-historiales card-icon"></i> Historiales Clínicos
-                    </a>
-                </li>*@
-                <!-- Tendencias (todos) -->
-                <li>
-                    <a class="nav-link" href="@Url.Action("Index", "Tendencias")">
-                        <i class="bi bi-bar-chart-line card-tendencias card-icon"></i> Tendencias
-                    </a>
-                </li>
+            <a class="nav-link" href="@Url.Action("Index", "HistorialesClinicos")">
+                <i class="bi bi-journal-medical card-historiales card-icon"></i> Historiales Clínicos
+            </a>
+        </li>*@
+
                 <!-- Roles, Usuarios, Veterinarios (solo admin) -->
                 @if (rolId == 1)
                 {
@@ -71,7 +66,23 @@
                 }
                 <!--Solo dueño de mascota-->
                 @if (rolId == 2)
-                {
+                {<!-- Vacunaciones (todos) -->
+                    <li>
+                        <a class="nav-link" href="@Url.Action("Index", "Vacunaciones")">
+                            <i class="bi bi-shield-plus card-vacunaciones card-icon"></i> Vacunaciones
+                        </a>
+                    </li>
+
+                    <!-- Vacunaciones (todos) -->
+
+
+                    <!-- Tendencias-->
+                    <li>
+                        <a class="nav-link" href="@Url.Action("Index", "Tendencias")">
+                            <i class="bi bi-bar-chart-line card-tendencias card-icon"></i> Tendencias
+                        </a>
+                    </li>
+
                     <!-- Historial Emergencia -->
                     <li>
                         <a class="nav-link" href="@Url.Action("IndexEmergenciaPorDuenio", "HistorialClinico")">
@@ -103,6 +114,8 @@
                         </a>
                     </li>
 
+
+
                 }
                 <!-- Dueños (admin y veterinario) -->
                 @if (rolId == 1 || rolId == 3)
@@ -123,11 +136,11 @@
                     </li>
                 }
                 <!-- QR (todos) -->
-                <li>
-                    <a class="nav-link" href="@Url.Action("Index", "QRPublico")">
-                        <i class="bi bi-qr-code card-qr card-icon"></i> QR
-                    </a>
-                </li>
+                <!--<li>
+        <a class="nav-link" href="@Url.Action("Index", "QRPublico")">
+            <i class="bi bi-qr-code card-qr card-icon"></i> QR
+        </a>
+    </li>-->
                 <!-- Vacunas (admin y veterinario) -->
                 @if (rolId == 1 || rolId == 3)
                 {

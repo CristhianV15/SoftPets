@@ -97,5 +97,73 @@ namespace SoftPets.Controllers
             FormsAuthentication.SignOut();
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public ActionResult MiCuenta()
+        {
+            int usuarioId = (int)Session["UsuarioId"];
+            Usuario model = null;
+            using (SqlConnection con = new SqlConnection(connectionString))
+            using (SqlCommand cmd = new SqlCommand("UsuariosSelect", con))
+            {
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", usuarioId);
+                con.Open();
+                var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    model = new Usuario
+                    {
+                        Id = Convert.ToInt32(reader["Id"]),
+                        Nombre = reader["Nombre"].ToString(),
+                        Email = reader["Email"].ToString(),
+                        Contrasenia = reader["Contrasenia"].ToString(),
+                        Estado = Convert.ToChar(reader["Estado"]),
+                        FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
+                        FechaActualizacion = reader["FechaActualizacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["FechaActualizacion"])
+                    };
+                }
+            }
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MiCuenta(Usuario model)
+        {
+            // Validación de nombre único
+            using (SqlConnection con = new SqlConnection(connectionString))
+            using (SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM Usuarios WHERE Nombre=@Nombre AND Id<>@Id", con))
+            {
+                cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
+                cmd.Parameters.AddWithValue("@Id", model.Id);
+                con.Open();
+                int count = (int)cmd.ExecuteScalar();
+                if (count > 0)
+                {
+                    ModelState.AddModelError("Nombre", "El nombre de usuario ya existe. Utilice otro.");
+                }
+            }
+
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection con = new SqlConnection(connectionString))
+                using (SqlCommand cmd = new SqlCommand("UsuariosUpdateCuenta", con))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Id", model.Id);
+                    cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
+                    cmd.Parameters.AddWithValue("@Email", model.Email);
+                    cmd.Parameters.AddWithValue("@Contrasenia", model.Contrasenia);
+                    cmd.Parameters.AddWithValue("@FechaActualizacion", DateTime.Now);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+                TempData["CuentaActualizada"] = true;
+                return RedirectToAction("MiCuenta");
+            }
+            return View(model);
+        }
     }
 }

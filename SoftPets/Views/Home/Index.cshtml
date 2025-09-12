@@ -8,7 +8,12 @@
 
 <div class="panel-titulo">Bienvenido a SoftPets</div>
 <div class="cards-container">
-
+    <div>
+        <a href="@Url.Action("MiCuenta", "Login")" class="card-modulo card-misdatos">
+            <i class="bi bi-person-circle card-icon"></i>
+        </a>
+        <div class="card-label">Mi Cuenta</div>
+    </div>
     <!-- Mascotas (todos) -->
     <div>
         <a href="@Url.Action("Index", "Mascotas")" class="card-modulo card-mascotas">
@@ -17,13 +22,6 @@
         <div class="card-label">Mascotas</div>
     </div>
 
-    <!-- Vacunaciones (todos) -->
-    <div>
-        <a href="@Url.Action("Index", "Vacunaciones")" class="card-modulo card-vacunaciones">
-            <i class="bi bi-shield-plus card-icon"></i>
-        </a>
-        <div class="card-label">Vacunaciones</div>
-    </div>
 
     <!-- Historiales Clínicos (todos) -->
     <!--<div>
@@ -32,15 +30,6 @@
         </a>
         <div class="card-label">Historiales Clínicos</div>
     </div>-->
-
-    <!-- Tendencias (todos) -->
-    <div>
-        <a href="@Url.Action("Index", "Tendencias")" class="card-modulo card-tendencias">
-            <i class="bi bi-bar-chart-line card-icon"></i>
-        </a>
-        <div class="card-label">Tendencias</div>
-    </div>
-
     <!-- Roles (solo admin) -->
     @if (rolId == 1)
     {
@@ -66,7 +55,21 @@
 
     <!--Solo dueño de mascota -->
     @if (rolId == 2)
-    {
+    {<!-- Vacunaciones (todos) -->
+        <div>
+            <a href="@Url.Action("Index", "Vacunaciones")" class="card-modulo card-vacunaciones">
+                <i class="bi bi-shield-plus card-icon"></i>
+            </a>
+            <div class="card-label">Vacunaciones</div>
+        </div>
+
+        <!-- Tendencias (todos) -->
+        <div>
+            <a href="@Url.Action("Index", "Tendencias")" class="card-modulo card-tendencias">
+                <i class="bi bi-bar-chart-line card-icon"></i>
+            </a>
+            <div class="card-label">Tendencias</div>
+        </div>
 
         <!-- Historial Clínico Emergencia -->
         <div>
@@ -130,12 +133,12 @@
     }
 
     <!-- QR (todos) -->
-    <div>
-        <a href="@Url.Action("Index", "QRPublico")" class="card-modulo card-qr">
-            <i class="bi bi-qr-code card-icon"></i>
-        </a>
-        <div class="card-label">QR</div>
-    </div>
+    @*<div>
+            <a href="@Url.Action("Index", "QRPublico")" class="card-modulo card-qr">
+                <i class="bi bi-qr-code card-icon"></i>
+            </a>
+            <div class="card-label">QR</div>
+        </div>*@
 
     <!-- Vacunas (admin y veterinario) -->
     @if (rolId == 1 || rolId == 3)

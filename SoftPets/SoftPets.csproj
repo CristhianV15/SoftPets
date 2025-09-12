@@ -271,6 +271,7 @@
     <Content Include="Views\Vacunas\_TablaVacunas.cshtml" />
     <Content Include="Views\Vacunaciones\Edit.cshtml" />
     <Content Include="Views\Mascotas\CarnetPdf.cshtml" />
+    <Content Include="Views\Login\MiCuenta.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
