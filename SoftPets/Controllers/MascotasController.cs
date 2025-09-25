@@ -323,9 +323,9 @@ namespace SoftPets.Controllers
         }
         public ActionResult Carnet(int id)
         {
-            // Obtener datos de la mascota y dueño
             Mascota mascota = null;
             string nombreDueno = "";
+
             using (var con = new SqlConnection(connectionString))
             using (var cmd = new SqlCommand(@"
         SELECT m.*, d.Nombres AS NombreDueno
@@ -355,7 +355,6 @@ namespace SoftPets.Controllers
                 }
             }
 
-            // Obtener historial de vacunas aplicadas con nombre y tipo
             var vacunasAplicadas = new List<CarnetVacunaVM>();
             using (var con = new SqlConnection(connectionString))
             using (var cmd = new SqlCommand(@"
@@ -388,22 +387,13 @@ namespace SoftPets.Controllers
             ViewBag.NombreDueno = nombreDueno;
             ViewBag.VacunasAplicadas = vacunasAplicadas;
 
-            //    return new Rotativa.ViewAsPdf("CarnetPdf")
-            //    {
-            //        FileName = $"Carnet_{mascota.Nombre}.pdf",
-            //        PageSize = Rotativa.Options.Size.A5,
-            //        PageOrientation = Rotativa.Options.Orientation.Landscape,
-            //        PageMargins = new Rotativa.Options.Margins(5, 5, 5, 5)
-            //    };
-            //}
-
             return new Rotativa.ViewAsPdf("CarnetPdf")
             {
                 FileName = $"Carnet_{mascota.Nombre}.pdf",
-                PageSize = Rotativa.Options.Size.A4, // Usa A4 para evitar saltos
-                PageOrientation = Rotativa.Options.Orientation.Portrait, // o Landscape si prefieres
-                PageMargins = new Rotativa.Options.Margins(0, 0, 0, 0)
+                PageSize = Rotativa.Options.Size.A4,
+                PageOrientation = Rotativa.Options.Orientation.Portrait,
+                PageMargins = new Rotativa.Options.Margins(5, 5, 5, 5)
             };
         }
-        }
-}
+    }
+    }

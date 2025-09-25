@@ -1,163 +1,172 @@
-﻿@{
-    var mascota = ViewBag.Mascota as SoftPets.Models.Mascota;
+﻿@using SoftPets.Models
+@{
+    Layout = null;
+
+    var mascota = ViewBag.Mascota as Mascota;
     var nombreDueno = ViewBag.NombreDueno as string ?? "";
-    var vacunas = ViewBag.VacunasAplicadas as List<SoftPets.Models.CarnetVacunaVM>;
+    var vacunas = ViewBag.VacunasAplicadas as List<CarnetVacunaVM>;
+
     var vacunasPorFecha = vacunas
         .Where(v => v.Tipo == "Vacuna")
         .GroupBy(v => v.FechaAplicada.HasValue ? v.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")
         .OrderBy(g => DateTime.ParseExact(g.Key, "dd/MM/yyyy", null));
+
     var antiparasitarios = vacunas
         .Where(v => v.Tipo == "Pastilla")
         .OrderBy(v => v.FechaAplicada);
 }
 
-<style>
-    .carnet-container {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(44,62,80,0.12);
-        padding: 0;
-        max-width: 900px;
-        margin: 0;
-    }
-
-    .carnet-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-    .carnet-foto {
-        width: 120px;
-        height: 120px;
-        border-radius: 12px;
-        object-fit: cover;
-        margin-right: 32px;
-        border: 2px solid #38bdf8;
-    }
-
-    .carnet-title {
-        font-size: 2em;
-        font-weight: bold;
-        color: #2563eb;
-    }
-
-    .carnet-datos {
-        margin-bottom: 24px;
-    }
-
-        .carnet-datos td {
-            padding: 4px 12px;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Carnet de Mascota</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 0;
         }
 
-    .vacuna-group {
-        margin-bottom: 18px;
-        border-left: 4px solid #38bdf8;
-        padding-left: 12px;
-        background: #f0f9ff;
-        border-radius: 6px;
-    }
-
-    .vacuna-group-title {
-        font-weight: bold;
-        color: #38bdf8;
-        margin-bottom: 6px;
-        font-size: 1.1em;
-    }
-
-    .carnet-vacunas th, .carnet-vacunas td {
-        border: 1px solid #e5e7eb;
-        padding: 6px 10px;
-        font-size: 0.96em;
-    }
-
-    .carnet-vacunas th {
-        background: #38bdf8;
-        color: #fff;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.9em;
-    }
-
-    .badge-success {
-        background: #22c55e;
-        color: #fff;
-    }
-
-    .antiparasitario-title {
-        margin-top: 32px;
-        color: #f59e42;
-        font-size: 1.2em;
-    }
-</style>
-
-<div class="carnet-container">
-    <div class="carnet-header">
-        @if (!string.IsNullOrEmpty(mascota.Foto))
-        {
-            <img src="@mascota.Foto" class="carnet-foto" alt="Foto de @mascota.Nombre" />
+        .carnet-container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(44,62,80,0.12);
+            padding: 20px;
+            max-width: 850px;
+            margin: 0 auto;
         }
-        <div>
-            <div class="carnet-title">Carnet de Mascota</div>
-            <div style="font-size:1.2em; color:#2563eb; font-weight:bold;">@mascota.Nombre</div>
-            <div style="font-size:1.05em; color:#444;">Dueño: <b>@nombreDueno</b></div>
+
+        .carnet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .carnet-foto {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-right: 24px;
+            border: 2px solid #38bdf8;
+        }
+
+        .carnet-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .carnet-datos {
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+            .carnet-datos td {
+                padding: 4px 12px;
+            }
+
+        .vacuna-group {
+            margin-bottom: 18px;
+            border-left: 4px solid #38bdf8;
+            padding-left: 12px;
+            background: #f0f9ff;
+            border-radius: 6px;
+        }
+
+        .vacuna-group-title {
+            font-weight: bold;
+            color: #38bdf8;
+            margin-bottom: 6px;
+            font-size: 1.05em;
+        }
+
+        .carnet-vacunas th, .carnet-vacunas td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 10px;
+            font-size: 0.9em;
+        }
+
+        .carnet-vacunas th {
+            background: #38bdf8;
+            color: #fff;
+        }
+
+        .antiparasitario-title {
+            margin-top: 26px;
+            color: #f59e42;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="carnet-container">
+        <div class="carnet-header">
+            @if (!string.IsNullOrEmpty(mascota.Foto))
+            {
+                <img src="@mascota.Foto" class="carnet-foto" alt="Foto de @mascota.Nombre" />
+            }
+            <div>
+                <div class="carnet-title">Carnet de Mascota</div>
+                <div style="font-size:1.2em; color:#2563eb; font-weight:bold;">@mascota.Nombre</div>
+                <div style="font-size:1.05em; color:#444;">Dueño: <b>@nombreDueno</b></div>
+            </div>
         </div>
-    </div>
-    <table class="carnet-datos">
-        <tr><td><b>Especie:</b></td><td>@mascota.Especie</td></tr>
-        <tr><td><b>Raza:</b></td><td>@mascota.Raza</td></tr>
-        <tr><td><b>Sexo:</b></td><td>@mascota.Sexo</td></tr>
-        <tr><td><b>Fecha Nacimiento:</b></td><td>@(mascota.FechaNacimiento.HasValue ? mascota.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "-")</td></tr>
-        <tr><td><b>Color:</b></td><td>@mascota.Color</td></tr>
-    </table>
 
-    <h3 style="margin-top:24px; color:#38bdf8;">Historial de Vacunas Aplicadas</h3>
-    @foreach (var grupo in vacunasPorFecha)
-    {
-        <div class="vacuna-group">
-            <div class="vacuna-group-title">Fecha: @grupo.Key</div>
-            <table class="carnet-vacunas" style="width:100%; margin-bottom:0;">
-                <tr>
-                    <th>Vacuna</th>
-                    <th>Dosis</th>
-                    <th>Lote</th>
-                    <th>Observaciones</th>
-                </tr>
-                @foreach (var v in grupo)
-                {
+        <table class="carnet-datos">
+            <tr><td><b>Especie:</b></td><td>@mascota.Especie</td></tr>
+            <tr><td><b>Raza:</b></td><td>@mascota.Raza</td></tr>
+            <tr><td><b>Sexo:</b></td><td>@mascota.Sexo</td></tr>
+            <tr><td><b>Fecha Nacimiento:</b></td><td>@(mascota.FechaNacimiento.HasValue ? mascota.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "-")</td></tr>
+            <tr><td><b>Color:</b></td><td>@mascota.Color</td></tr>
+        </table>
+
+        <h3 style="margin-top:20px; color:#38bdf8;">Historial de Vacunas Aplicadas</h3>
+        @foreach (var grupo in vacunasPorFecha)
+        {
+            <div class="vacuna-group">
+                <div class="vacuna-group-title">Fecha: @grupo.Key</div>
+                <table class="carnet-vacunas" style="width:100%; margin-bottom:0;">
                     <tr>
-                        <td>@v.NombreVacuna</td>
-                        <td>@v.DosisAplicada</td>
-                        <td>@v.Lote</td>
-                        <td>@v.Observaciones</td>
+                        <th>Vacuna</th>
+                        <th>Dosis</th>
+                        <th>Lote</th>
+                        <th>Observaciones</th>
                     </tr>
-                }
-            </table>
-        </div>
-    }
-
-    <div class="antiparasitario-title"><b>Control Antiparasitario</b></div>
-    <table class="carnet-vacunas" style="width:100%;">
-        <tr>
-            <th>Fecha</th>
-            <th>Producto</th>
-            <th>Dosis</th>
-            <th>Lote</th>
-            <th>Observaciones</th>
-        </tr>
-        @foreach (var v in antiparasitarios)
-        {
-            <tr>
-                <td>@(v.FechaAplicada.HasValue ? v.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
-                <td>@v.NombreVacuna</td>
-                <td>@v.DosisAplicada</td>
-                <td>@v.Lote</td>
-                <td>@v.Observaciones</td>
-            </tr>
+                    @foreach (var v in grupo)
+                    {
+                        <tr>
+                            <td>@v.NombreVacuna</td>
+                            <td>@v.DosisAplicada</td>
+                            <td>@v.Lote</td>
+                            <td>@v.Observaciones</td>
+                        </tr>
+                    }
+                </table>
+            </div>
         }
-    </table>
-</div>
+
+        <div class="antiparasitario-title"><b>Control Antiparasitario</b></div>
+        <table class="carnet-vacunas" style="width:100%;">
+            <tr>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Dosis</th>
+                <th>Lote</th>
+                <th>Observaciones</th>
+            </tr>
+            @foreach (var v in antiparasitarios)
+            {
+                <tr>
+                    <td>@(v.FechaAplicada.HasValue ? v.FechaAplicada.Value.ToString("dd/MM/yyyy") : "-")</td>
+                    <td>@v.NombreVacuna</td>
+                    <td>@v.DosisAplicada</td>
+                    <td>@v.Lote</td>
+                    <td>@v.Observaciones</td>
+                </tr>
+            }
+        </table>
+    </div>
+</body>
+</html>

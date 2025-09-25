@@ -211,7 +211,7 @@ namespace SoftPets.Controllers
                 int dosisId = 0, indicacionId = 0, detalleId = 0, historialId = 0;
                 using (var con = new SqlConnection(connectionString))
                 {
-                    // 1. Marcar la toma como realizada y guardar observación, obtener el ID de la dosis
+                    // 1. Marcar la toma como realizada
                     using (var cmd = new SqlCommand(@"
                 UPDATE TomasDosisIndicacionHistorialClinico 
                 SET Estado='Realizada', Observaciones=@Obs 
@@ -221,33 +221,39 @@ namespace SoftPets.Controllers
                         cmd.Parameters.AddWithValue("@Id", id);
                         cmd.Parameters.AddWithValue("@Obs", (object)observacion ?? DBNull.Value);
                         con.Open();
-                        dosisId = (int)cmd.ExecuteScalar();
+                        var result = cmd.ExecuteScalar();
+                        if (result != null)
+                            dosisId = Convert.ToInt32(result);
                     }
 
-                    // 2. Verificar si todas las tomas de esa dosis están realizadas
-                    using (var cmd = new SqlCommand(@"
-                SELECT COUNT(*) 
-                FROM TomasDosisIndicacionHistorialClinico 
-                WHERE DosisIndicacionHistorialClinicoId=@DosisId AND Estado<>'Realizada'", con))
+                    // 2. Verificar si todas las tomas de la dosis están realizadas
+                    if (dosisId > 0)
                     {
-                        cmd.Parameters.AddWithValue("@DosisId", dosisId);
-                        int pendientes = (int)cmd.ExecuteScalar();
-                        if (pendientes == 0)
+                        using (var cmd = new SqlCommand(@"
+                    SELECT COUNT(*) 
+                    FROM TomasDosisIndicacionHistorialClinico 
+                    WHERE DosisIndicacionHistorialClinicoId=@DosisId AND Estado<>'Realizada'", con))
                         {
-                            // Marcar la dosis como finalizada y obtener el ID de la indicación
-                            using (var cmd2 = new SqlCommand(@"
-                        UPDATE DosisIndicacionesHistorialesClinicos 
-                        SET EstadoAlerta='Realizada' 
-                        OUTPUT INSERTED.IndicacionesHistorialesClinicosId
-                        WHERE Id=@DosisId", con))
+                            cmd.Parameters.AddWithValue("@DosisId", dosisId);
+                            int pendientes = (int)cmd.ExecuteScalar();
+                            if (pendientes == 0)
                             {
-                                cmd2.Parameters.AddWithValue("@DosisId", dosisId);
-                                indicacionId = (int)cmd2.ExecuteScalar();
+                                using (var cmd2 = new SqlCommand(@"
+                            UPDATE DosisIndicacionesHistorialesClinicos 
+                            SET EstadoAlerta='Realizada' 
+                            OUTPUT INSERTED.IndicacionesHistorialesClinicosId
+                            WHERE Id=@DosisId", con))
+                                {
+                                    cmd2.Parameters.AddWithValue("@DosisId", dosisId);
+                                    var result = cmd2.ExecuteScalar();
+                                    if (result != null)
+                                        indicacionId = Convert.ToInt32(result);
+                                }
                             }
                         }
                     }
 
-                    // 3. Si todas las dosis de la indicación están realizadas, marcar la indicación como realizada y obtener el detalle
+                    // 3. Si todas las dosis de la indicación están realizadas
                     if (indicacionId > 0)
                     {
                         using (var cmd = new SqlCommand(@"
@@ -259,7 +265,6 @@ namespace SoftPets.Controllers
                             int pendientes = (int)cmd.ExecuteScalar();
                             if (pendientes == 0)
                             {
-                                // Marcar la indicación como realizada y obtener el detalle
                                 using (var cmd2 = new SqlCommand(@"
                             UPDATE IndicacionesHistorialesClinicos 
                             SET Estado='Realizada' 
@@ -267,13 +272,15 @@ namespace SoftPets.Controllers
                             WHERE Id=@IndicacionId", con))
                                 {
                                     cmd2.Parameters.AddWithValue("@IndicacionId", indicacionId);
-                                    detalleId = (int)cmd2.ExecuteScalar();
+                                    var result = cmd2.ExecuteScalar();
+                                    if (result != null)
+                                        detalleId = Convert.ToInt32(result);
                                 }
                             }
                         }
                     }
 
-                    // 4. Si todas las indicaciones del detalle están realizadas, marcar el detalle como realizado y obtener el historial
+                    // 4. Si todas las indicaciones del detalle están realizadas
                     if (detalleId > 0)
                     {
                         using (var cmd = new SqlCommand(@"
@@ -285,7 +292,6 @@ namespace SoftPets.Controllers
                             int pendientes = (int)cmd.ExecuteScalar();
                             if (pendientes == 0)
                             {
-                                // Marcar el detalle como realizado y obtener el historial
                                 using (var cmd2 = new SqlCommand(@"
                             UPDATE DetallesHistorialesClinicos 
                             SET Estado='Realizada' 
@@ -293,13 +299,15 @@ namespace SoftPets.Controllers
                             WHERE Id=@DetalleId", con))
                                 {
                                     cmd2.Parameters.AddWithValue("@DetalleId", detalleId);
-                                    historialId = (int)cmd2.ExecuteScalar();
+                                    var result = cmd2.ExecuteScalar();
+                                    if (result != null)
+                                        historialId = Convert.ToInt32(result);
                                 }
                             }
                         }
                     }
 
-                    // 5. Si todos los detalles del historial están realizados, marcar el historial como finalizado
+                    // 5. Si todos los detalles del historial están realizados
                     if (historialId > 0)
                     {
                         using (var cmd = new SqlCommand(@"
@@ -325,11 +333,12 @@ namespace SoftPets.Controllers
                 }
                 return Json(new { success = true });
             }
-            catch
+            catch (Exception ex)
             {
-                return Json(new { success = false });
+                return Json(new { success = false, error = ex.Message });
             }
         }
+
 
         // Generar tomas automáticamente al crear una dosis
         public void GenerarTomas(int dosisId, DateTime fechaInicio, int intervaloCantidad, string intervaloTipo, int cantidadTotal)
