@@ -3,63 +3,222 @@
     ViewBag.Title = "Gráfico de Tendencias";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string nombreMascota = ViewBag.NombreMascota;
+    var years = Model.Where(x => x.Fecha.HasValue)
+                     .Select(x => x.Fecha.Value.Year)
+                     .Distinct()
+                     .OrderBy(y => y)
+                     .ToList();
 }
 
 <div class="main-content-bg">
-    <div class="tabla-container" style="max-width:700px;">
-        <h2 class="text-center mb-4">Gráfico de Tendencias de @nombreMascota</h2>
+    <div class="tabla-container" style="max-width:900px; background:#fff; border-radius:16px; padding:25px; box-shadow:0 6px 14px rgba(0,0,0,0.12);">
+        <h2 class="text-center mb-4" style="color:#0f172a; font-weight:700;" id="tituloGrafico">
+            📈 Evolución de @nombreMascota
+        </h2>
+
+        <!-- Contenedor para mensajes dinámicos -->
+        <div id="msgContainer" class="mb-3"></div>
+
+        <!-- Filtros -->
+        <div class="text-center mb-3">
+            <label for="filtroAnio" style="font-weight:600; margin-right:8px;">Año:</label>
+            <select id="filtroAnio" class="form-select" style="display:inline-block; min-width:120px; border-radius:8px; padding:6px 10px;">
+                <option value="Todos">Todos</option>
+                @foreach (var y in years)
+                {
+                    <option value="@y">@y</option>
+                }
+            </select>
+
+            <label for="filtroMes" style="font-weight:600; margin:0 8px 0 20px;">Mes:</label>
+            <select id="filtroMes" class="form-select" style="display:inline-block; min-width:120px; border-radius:8px; padding:6px 10px;">
+                <option value="Todos">Todos</option>
+            </select>
+
+            <label class="ms-4" style="font-weight:600;">
+                <input type="checkbox" id="chkTendencia" style="margin-right:6px;"> Mostrar tendencias
+            </label>
+        </div>
+
         <canvas id="graficoTendencias" style="max-width:100%;"></canvas>
+
         <div class="text-center mt-4">
-            @Html.ActionLink("Volver", "Index", new { mascotaId = ViewBag.MascotaId }, new { @class = "btn btn-unificado" })
+            @Html.ActionLink("⬅ Volver", "Index", new { mascotaId = ViewBag.MascotaId }, new { @class = "btn btn-unificado" })
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    var fechas = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Fecha.HasValue ? x.Fecha.Value.ToString("dd/MM/yyyy") : "")));
-    var pesos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Peso)));
-    var temps = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => x.Temperatura)));
+    // Datos crudos
+    var rawData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(x => new {
+        Fecha = x.Fecha.HasValue ? x.Fecha.Value.ToString("yyyy-MM-dd") : null,
+        Peso = x.Peso,
+        Temp = x.Temperatura
+    })));
 
-    var ctx = document.getElementById('graficoTendencias').getContext('2d');
-    var chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: fechas,
-            datasets: [
-                {
-                    label: 'Peso (kg)',
-                    data: pesos,
-                    borderColor: '#38bdf8',
-                    backgroundColor: 'rgba(56,189,248,0.1)',
-                    yAxisID: 'y',
-                    tension: 0.3
+    const meses = ["Todos","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+    document.getElementById("filtroAnio").addEventListener("change", actualizarMeses);
+    document.getElementById("filtroMes").addEventListener("change", renderChart);
+    document.getElementById("chkTendencia").addEventListener("change", renderChart);
+
+    function actualizarMeses() {
+        let filtroAnio = document.getElementById("filtroAnio").value;
+        let selectMes = document.getElementById("filtroMes");
+        selectMes.innerHTML = "<option value='Todos'>Todos</option>";
+
+        if (filtroAnio !== "Todos") {
+            let mesesDisponibles = [...new Set(rawData
+                .filter(d => d.Fecha && d.Fecha.startsWith(filtroAnio))
+                .map(d => new Date(d.Fecha).getMonth() + 1))];
+
+            mesesDisponibles.sort((a,b)=>a-b).forEach(m => {
+                let opt = document.createElement("option");
+                opt.value = m;
+                opt.text = meses[m];
+                selectMes.add(opt);
+            });
+        }
+        renderChart();
+    }
+
+    function calcularRegresion(x, y) {
+        let n = x.length;
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        for (let i=0;i<n;i++) {
+            sumX += x[i];
+            sumY += y[i];
+            sumXY += x[i]*y[i];
+            sumXX += x[i]*x[i];
+        }
+        let m = (n*sumXY - sumX*sumY) / (n*sumXX - sumX*sumX);
+        let b = (sumY - m*sumX) / n;
+        return {m, b};
+    }
+
+    function showMessage(type, text) {
+        const msgContainer = document.getElementById("msgContainer");
+        msgContainer.innerHTML = `
+            <div class="alert alert-${type}" role="alert">
+                ${text}
+            </div>`;
+    }
+
+    function clearMessage() {
+        document.getElementById("msgContainer").innerHTML = "";
+    }
+
+    function renderChart() {
+        var filtroAnio = document.getElementById("filtroAnio").value;
+        var filtroMes = document.getElementById("filtroMes").value;
+        var mostrarTendencia = document.getElementById("chkTendencia").checked;
+
+        var dataFiltrada = rawData.filter(d => {
+            if (!d.Fecha) return false;
+            let [anio, mes] = d.Fecha.split("-").map(Number);
+            return (filtroAnio === "Todos" || anio == filtroAnio) &&
+                   (filtroMes === "Todos" || mes == filtroMes);
+        });
+
+        var fechas = dataFiltrada.map(d => new Date(d.Fecha).toLocaleDateString("es-PE"));
+        var pesos = dataFiltrada.map(d => d.Peso);
+        var temps = dataFiltrada.map(d => d.Temp);
+
+        if (window.myChart) window.myChart.destroy();
+
+        // ---- TÍTULO DINÁMICO (incluye nombre de mascota) ----
+        let titulo = "📊 Tendencias de Peso y Temperatura de @nombreMascota";
+        if (filtroAnio !== "Todos") {
+            titulo += " - " + filtroAnio;
+            if (filtroMes !== "Todos") titulo += " / " + meses[filtroMes];
+        }
+        document.getElementById("tituloGrafico").innerText = titulo;
+
+        // ---- Validación de tendencias ----
+        clearMessage();
+        let puedeMostrarTendencia = dataFiltrada.length >= 5;
+        if (mostrarTendencia && !puedeMostrarTendencia) {
+            showMessage("warning", `⚠️ No es posible mostrar tendencias.
+                Faltan <b>${5 - dataFiltrada.length}</b> datos para llegar al mínimo de 5.`);
+            mostrarTendencia = false;
+        }
+
+        // ---- Datasets ----
+        let datasets = [
+            {
+                label: '⚖️ Peso (kg)',
+                data: pesos,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37,99,235,0.15)',
+                borderWidth: 2,
+                yAxisID: 'y',
+                tension: 0.35
+            },
+            {
+                label: '🌡️ Temp (°C)',
+                data: temps,
+                borderColor: '#dc2626',
+                backgroundColor: 'rgba(220,38,38,0.15)',
+                borderWidth: 2,
+                yAxisID: 'y1',
+                tension: 0.35
+            }
+        ];
+
+        if (mostrarTendencia && puedeMostrarTendencia) {
+            let x = dataFiltrada.map((d,i) => i+1); // índices
+            let regPeso = calcularRegresion(x, pesos);
+            let regTemp = calcularRegresion(x, temps);
+
+            let tendenciaPeso = x.map(xi => regPeso.m*xi + regPeso.b);
+            let tendenciaTemp = x.map(xi => regTemp.m*xi + regTemp.b);
+
+            datasets.push({
+                label: "Tendencia Peso",
+                data: tendenciaPeso,
+                borderColor: "#1e3a8a",
+                borderDash: [6,6],
+                fill: false,
+                yAxisID: "y"
+            });
+            datasets.push({
+                label: "Tendencia Temp",
+                data: tendenciaTemp,
+                borderColor: "#991b1b",
+                borderDash: [6,6],
+                fill: false,
+                yAxisID: "y1"
+            });
+
+            showMessage("success", "✅ Tendencias proyectadas con base en los datos actuales.");
+        }
+
+        var ctx = document.getElementById('graficoTendencias').getContext('2d');
+        window.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: fechas,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: titulo }
                 },
-                {
-                    label: 'Temperatura (°C)',
-                    data: temps,
-                    borderColor: '#fbbf24',
-                    backgroundColor: 'rgba(251,191,36,0.1)',
-                    yAxisID: 'y1',
-                    tension: 0.3
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    type: 'linear',
-                    position: 'left',
-                    title: { display: true, text: 'Peso (kg)' }
-                },
-                y1: {
-                    type: 'linear',
-                    position: 'right',
-                    grid: { drawOnChartArea: false },
-                    title: { display: true, text: 'Temperatura (°C)' }
+                scales: {
+                    y: { title: { display: true, text: 'Peso (kg)' } },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Temp (°C)' }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
+    renderChart();
 </script>
