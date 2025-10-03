@@ -18,15 +18,20 @@ namespace SoftPets.Controllers
         // Listar historial de tendencias de una mascota
         public ActionResult Index(int? mascotaId, string mascotaNombre = "")
         {
-            int duenioId = (int)Session["DuenioId"];
+            int rolId = (int)Session["RolId"];
+            int duenioId = rolId == 2 ? (int)Session["DuenioId"] : 0;
             var lista = new List<Tendencia>();
             var mascotas = new List<Mascota>();
 
-            // Obtener todas las mascotas del dueño para el filtro
+            // Obtener todas las mascotas para el filtro (todas si veterinario, solo propias si dueño)
+            string queryMascotas = rolId == 2
+                ? "SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId"
+                : "SELECT Id, Nombre FROM Mascotas";
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+            using (var cmd = new SqlCommand(queryMascotas, con))
             {
-                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                if (rolId == 2)
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
@@ -75,15 +80,18 @@ namespace SoftPets.Controllers
             SELECT t.*, m.Nombre AS NombreMascota
             FROM Tendencias t
             INNER JOIN Mascotas m ON t.MascotaId = m.Id
-            WHERE m.DuenioId = @DuenioId
+            WHERE 1=1
         ";
+                if (rolId == 2)
+                    query += " AND m.DuenioId = @DuenioId";
                 if (!string.IsNullOrEmpty(mascotaNombre))
                     query += " AND m.Nombre LIKE @MascotaNombre";
 
                 using (var con = new SqlConnection(connectionString))
                 using (var cmd = new SqlCommand(query, con))
                 {
-                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                    if (rolId == 2)
+                        cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                     if (!string.IsNullOrEmpty(mascotaNombre))
                         cmd.Parameters.AddWithValue("@MascotaNombre", "%" + mascotaNombre + "%");
                     con.Open();

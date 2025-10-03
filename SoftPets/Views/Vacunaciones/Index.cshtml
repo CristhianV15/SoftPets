@@ -17,7 +17,7 @@
         <div class="text-center mb-3">
             @Html.ActionLink("Registrar Vacunación/Pastilla", "Create", mascotaId != null ? new { mascotaId = mascotaId } : null, new { @class = "btn btn-unificado btn-crear-nuevo mb-3" })
         </div>
-        <form id="filtroForm" class="row mb-3 g-2 justify-content-center">
+        <form id="filtroForm" class="row mb-3 g-2 justify-content-center" autocomplete="off" onsubmit="return false;">
             @if (mascotaId == null)
             {
                 <div class="col-auto">
@@ -121,7 +121,7 @@ function cargarTablaVacunaciones() {
         $("#tablaVacunaciones").html(newTable);
     });
 }
-$('#filtroForm select, #filtroForm input').on('change keyup', function () {
+$('#filtroForm select, #filtroForm input').on('keyup change', function () {
     cargarTablaVacunaciones();
 });
     </script>

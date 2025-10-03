@@ -18,7 +18,8 @@ namespace SoftPets.Controllers
         // INDEX: Historial y pendientes por mascota
         public ActionResult Index(int? mascotaId, string tipo = "", string estado = "", string mascotaNombre = "", string vacunaNombre = "")
         {
-            int duenioId = (int)Session["DuenioId"];
+            int rolId = (int)Session["RolId"];
+            int duenioId = rolId == 2 ? (int)Session["DuenioId"] : 0; // Solo filtra por dueño si es dueño
             var lista = new List<Vacunacion>();
             var vacunas = new List<Vacuna>();
             var mascotas = new List<Mascota>();
@@ -42,11 +43,15 @@ namespace SoftPets.Controllers
                 }
             }
 
-            // Obtener todas las mascotas del dueño para el filtro
+            // Obtener todas las mascotas para el filtro (todas si veterinario, solo propias si dueño)
+            string queryMascotas = rolId == 2
+                ? "SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId"
+                : "SELECT Id, Nombre FROM Mascotas";
             using (var con = new SqlConnection(connectionString))
-            using (var cmd = new SqlCommand("SELECT Id, Nombre FROM Mascotas WHERE DuenioId=@DuenioId", con))
+            using (var cmd = new SqlCommand(queryMascotas, con))
             {
-                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                if (rolId == 2)
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
@@ -66,8 +71,10 @@ namespace SoftPets.Controllers
         FROM Vacunaciones v
         INNER JOIN Vacunas va ON v.VacunaId = va.Id
         INNER JOIN Mascotas m ON v.MascotaId = m.Id
-        WHERE m.DuenioId = @DuenioId
+        WHERE 1=1
     ";
+            if (rolId == 2)
+                query += " AND m.DuenioId = @DuenioId";
             if (mascotaId.HasValue)
                 query += " AND v.MascotaId = @MascotaId";
             if (!string.IsNullOrEmpty(tipo))
@@ -82,7 +89,8 @@ namespace SoftPets.Controllers
             using (var con = new SqlConnection(connectionString))
             using (var cmd = new SqlCommand(query, con))
             {
-                cmd.Parameters.AddWithValue("@DuenioId", duenioId);
+                if (rolId == 2)
+                    cmd.Parameters.AddWithValue("@DuenioId", duenioId);
                 if (mascotaId.HasValue)
                     cmd.Parameters.AddWithValue("@MascotaId", mascotaId.Value);
                 if (!string.IsNullOrEmpty(tipo))
@@ -112,7 +120,6 @@ namespace SoftPets.Controllers
                             Estado = dr["Estado"].ToString(),
                             FechaCreacion = (DateTime)dr["FechaCreacion"],
                             FechaActualizacion = dr["FechaActualizacion"] != DBNull.Value ? (DateTime?)dr["FechaActualizacion"] : null,
-                            // Si quieres mostrar nombre de mascota en la vista, puedes agregar una propiedad extra en el modelo o usar ViewBag
                         });
                     }
                 }
